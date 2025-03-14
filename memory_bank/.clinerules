@@ -47,28 +47,43 @@
 ## Known Challenges
 
 ### Performance Critical Areas
-1. Screen Capture
-   - Minimize CPU usage
-   - Optimize memory allocation
-   - Reduce latency
+1. Screen Capture System
+   - Configure target FPS based on use case
+   - Monitor and optimize frame timing
+   - Track dropped frames for quality control
+   - Debug frame capture for validation
+   - Memory usage monitoring with thresholds
+   - Processing time tracking with limits
 
 2. Image Processing
    - Efficient algorithms required
    - Balance accuracy vs speed
    - Resource management crucial
+   - Frame buffering strategies
+   - Memory allocation optimization
 
 ### Evolution Points
-1. Plugin System
-   - Start simple, expand gradually
-   - Focus on core interfaces
-   - Plan for versioning
-   - Consider compatibility
+1. Screenshot Stream Patterns
+   - RxPY Subject/Observable pattern for frame distribution
+   - Async/await for non-blocking operations
+   - Configurable metrics collection
+   - Performance monitoring with thresholds
+   - Debug frame capture at intervals
+   - Clean shutdown and resource cleanup
 
 2. Service Layer
    - Begin with basic services
    - Add features incrementally
    - Maintain interface stability
    - Document changes carefully
+   - Configuration-driven initialization
+   - Clear error handling patterns
+
+3. Plugin System
+   - Start simple, expand gradually
+   - Focus on core interfaces
+   - Plan for versioning
+   - Consider compatibility
 
 ## Tool Usage Patterns
 
