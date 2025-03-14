@@ -33,9 +33,17 @@ Having completed the core Screenshot Stream implementation and Module System fou
 - Service integration
 - Test module implementation
 - Comprehensive module testing framework
+- Input Service implementation
+  - Mouse control with safety features
+  - Configurable delays and bounds
+  - Full test coverage
 
 #### Current Priority
 
+- Service Layer Completion:
+  - Vision service implementation
+  - Keyboard input integration
+  - Service integration testing
 - Initial Module Implementations:
   - Inventory module design and implementation
   - Stash module architecture

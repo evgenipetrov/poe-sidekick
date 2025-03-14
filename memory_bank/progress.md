@@ -69,8 +69,11 @@ graph LR
 
    - [ ] Vision service
    - [ ] Keyboard service
-   - [ ] Mouse service
-   - Progress: 0%
+   - [x] Mouse service (InputService)
+     - Basic mouse control
+     - Safety features (delays, failsafe)
+     - Full test coverage
+   - Progress: 33%
 
 4. **Workflow System**
    - [ ] Base workflow class

@@ -18,6 +18,7 @@ opencv-python = "*"
 rx = "*"
 dxcam = "*"
 psutil = "*"
+pyautogui = "^0.9.54"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
