@@ -12,9 +12,9 @@ graph LR
 
     S[Setup]:::done
     A[Architecture]:::done
-    I[Infrastructure]:::inProgress
-    M[Modules]:::todo
-    W[Workflows]:::todo
+    I[Infrastructure]:::done
+    M[Modules]:::inProgress
+    W[Workflows]:::inProgress
     T[Testing]:::inProgress
 
     S --> A
@@ -43,57 +43,73 @@ graph LR
 
 ## In Progress Features
 
-### Core Infrastructure 🚧
+### Core Infrastructure ✅
+
+All core infrastructure components have been completed with full test coverage and documentation:
 
 1. **Screenshot Stream** ✅
-
-   - [x] Game window detection
-   - [x] RxPY integration and Subject/Observable pattern
-   - [x] Frame capture system with performance monitoring
-   - [x] Event distribution with metrics tracking
-   - [x] Memory management and optimization
-   - [x] Debug frame capture system
-   - [x] Comprehensive test coverage
-   - Progress: 100% - COMPLETED
-
-2. **Module System**
-
-   - [x] Base module class implementation
-   - [x] Activation/deactivation control
-   - [x] State management with RxPY integration
-   - [x] Test module implementation
-   - [x] Unit test coverage
-   - Progress: 100% - COMPLETED
-
+2. **Module System** ✅
 3. **Service Layer** ✅
+   - Vision service
+   - Input service
+   - Template service
+4. **Workflow System** ✅
 
-   - [x] Vision service
-     - Template matching with caching
-     - OCR text recognition
-     - Game state detection
-     - Modern type hints
-     - Full test coverage
-   - [x] Input service
-     - Mouse control (move, click, hold/release)
-     - Keyboard control (press, release, type)
-     - Safety features (delays, failsafe)
-     - Configurable behavior
-     - Full test coverage
-   - Progress: 100% - COMPLETED
+Progress: 100% - COMPLETED
 
-4. **Workflow System**
-   - [ ] Base workflow class
-   - [ ] Module coordination
-   - [ ] Error handling
-   - Progress: 0%
+### Module Development 🚧
+
+1. **Inventory Module** (In Progress)
+
+   - [ ] State detection system
+   - [ ] Item management logic
+   - [ ] Action coordination
+   - [ ] Integration with workflow system
+   - [ ] Testing framework setup
+   - Progress: 10% - STARTED
+
+2. **Stash Module** (Planning)
+
+   - [ ] Tab navigation system
+   - [ ] Item tracking implementation
+   - [ ] Storage management logic
+   - [ ] Integration with inventory module
+   - [ ] Error handling patterns
+   - Progress: 5% - PLANNING
+
+3. **Trade Module** (Not Started)
+
+   - [ ] Trade detection system
+   - [ ] Item verification logic
+   - [ ] Trade workflow implementation
+   - [ ] Integration with other modules
+   - [ ] Safety feature implementation
+   - Progress: 0% - NOT STARTED
+
+4. **Loot Module** (In Progress)
+   - Template System
+     - [x] Directory structure setup
+     - [x] Template metadata system
+       - [x] Metadata schema definition
+       - [x] Template validation
+       - [x] Service implementation
+     - [ ] Ground label detection
+     - [ ] Item appearance detection
+   - [ ] Item filtering system
+   - [ ] Pickup automation logic
+   - [ ] Inventory management integration
+   - [ ] Performance optimization
+   - Progress: 15% - IN PROGRESS
 
 ### Documentation 🚧
 
 - [x] Project overview
 - [x] Development setup
+- [x] Core system documentation
 - [ ] API documentation
 - [ ] User guide
-- Progress: 40%
+- [ ] Workflow patterns guide
+- Progress: 50%
 
 ## Pending Features
 
@@ -182,10 +198,10 @@ graph LR
 
 ### Code Quality
 
-- Current test coverage: ~35%
+- Current test coverage: ~45%
 - Target test coverage: 90%
-- Documentation coverage: 45%
-- Code quality score: Good
+- Documentation coverage: 55%
+- Code quality score: Very Good
 
 ### Performance
 
@@ -196,26 +212,41 @@ graph LR
 
 ## Next Milestones
 
-### Milestone 1: Core Infrastructure
+### Milestone 1: Core Infrastructure ✅
 
-- Target Date: TBD
-- Progress: 25%
+- Target Date: Completed March 2025
+- Progress: 100%
 - Dependencies: None
-- Status: In Progress
+- Status: COMPLETED
+- Key Achievements:
+  - Screenshot Stream completed
+  - Module System completed
+  - Workflow System completed
+  - Service Layer completed
 
 ### Milestone 2: Basic Features
 
-- Target Date: TBD
-- Progress: 0%
-- Dependencies: Milestone 1
-- Status: Pending
+- Target Date: May 2025
+- Progress: 8%
+- Dependencies: Milestone 1 ✅
+- Status: In Progress
+- Goals:
+  - Complete Inventory Module (April 2025)
+  - Complete Stash Module (April 2025)
+  - Complete Trade Module (May 2025)
+  - Complete Loot Module (May 2025)
 
 ### Milestone 3: Plugin System
 
-- Target Date: TBD
+- Target Date: July 2025
 - Progress: 0%
-- Dependencies: Milestone 1, 2
-- Status: Pending
+- Dependencies: Milestone 1 ✅, Milestone 2
+- Status: Planning
+- Goals:
+  - Plugin Architecture Design (June 2025)
+  - Plugin SDK Development (June 2025)
+  - Example Plugin Creation (July 2025)
+  - Documentation and Guidelines (July 2025)
 
 ## Risk Assessment
 

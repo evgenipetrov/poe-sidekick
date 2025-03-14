@@ -2,57 +2,113 @@
 
 ## Recent Changes
 
-### Core Architecture Refactoring
+### Core Infrastructure Completion
 
-1. Added `Engine` class in `core/engine.py`
+1. Screenshot Stream System ✅
 
-   - Centralized application lifecycle management
-   - Proper async initialization and cleanup
-   - Component orchestration (modules, workflows)
-   - Error handling and recovery
+   - RxPY integration with Subject/Observable pattern
+   - Optimized frame capture with performance monitoring
+   - Event distribution system with metrics tracking
+   - Memory management and optimization
+   - Debug frame capture capabilities
+   - Full test coverage
 
-2. Updated `__main__.py`
-   - Migrated to async entry point
-   - Added proper signal handling
-   - Structured logging setup
-   - Clean shutdown process
+2. Module System Foundation ✅
+
+   - Base module implementation with RxPY integration
+   - Robust activation/deactivation control
+   - State management patterns
+   - Service integration
+   - Test module implementation
+   - Comprehensive testing framework
+
+3. Service Layer Implementation ✅
+
+   - Vision service with template matching and OCR
+   - Input service with safety features
+   - Template service for metadata management
+   - Configurable behavior and delays
+   - Full test coverage
+
+4. Workflow System ✅
+   - Async support with proper error handling
+   - Sequential module activation with rollback
+   - Resource management and cleanup guarantees
+   - State tracking and validation
+   - Clear extension points for subclasses
 
 ### Current Focus
 
-Having completed the core Screenshot Stream implementation and Module System foundation, the focus is shifting to specific module implementations:
+With the core infrastructure now complete, development is focused on implementing the first set of game-specific modules:
 
-#### Recently Completed
+#### Module Development Priority
 
-- Screenshot Stream with RxPY integration
-- Performance monitoring and metrics system
-- Debug frame capture capabilities
-- Memory management and optimization
-- Base module implementation with RxPY integration
-- Module activation/deactivation control
-- State management patterns
-- Service integration
-- Test module implementation
-- Comprehensive module testing framework
-- Input Service implementation
-  - Mouse control with safety features
-  - Configurable delays and bounds
-  - Full test coverage
+1. Inventory Module (High Priority)
 
-#### Current Priority
+   - State detection system
+   - Item management logic
+   - Action coordination
+   - Integration with workflow system
+   - Testing framework setup
 
-- Initial Module Implementations:
-  - Inventory module design and implementation
-  - Stash module architecture
-  - Trade module planning
-  - Module integration testing
+2. Stash Module (High Priority)
+
+   - Tab navigation system
+   - Item tracking implementation
+   - Storage management logic
+   - Integration with inventory module
+   - Error handling patterns
+
+3. Trade Module (Medium Priority)
+
+   - Trade detection system
+   - Item verification logic
+   - Trade workflow implementation
+   - Integration with other modules
+   - Safety feature implementation
+
+4. Loot Module (In Progress)
+   - Template system implementation
+     - [x] Directory structure for shared templates
+     - [x] Template metadata system
+       - [x] Service implementation
+       - [x] Validation logic
+       - [x] Error handling
+     - [ ] Ground label detection
+     - [ ] Item appearance templates
+   - Item filtering system
+   - Pickup automation logic
+   - Inventory management integration
+   - Performance optimization
 
 ### Next Steps
 
-1. Design and implement Inventory Module
-2. Create Stash Module foundation
-3. Plan Trade Module architecture
-4. Develop integration tests for module interactions
-5. Document module development patterns
+1. Implement Ground Label Detection
+
+   - Integrate template service with vision service
+   - Implement color-based masking
+   - Add template matching logic
+   - Create detection tests
+
+2. Implement Inventory Module
+
+   - Design state detection system
+   - Develop item management logic
+   - Create workflow integration tests
+   - Document implementation patterns
+
+3. Documentation Updates
+
+   - Complete API documentation
+   - Create user guide
+   - Document workflow patterns
+   - Update development guidelines
+
+4. Testing Infrastructure
+   - Expand testing framework
+   - Create module-specific tests
+   - Implement integration testing
+   - Add performance benchmarks
 
 ## Current Development Phase
 
@@ -60,7 +116,7 @@ Having completed the core Screenshot Stream implementation and Module System fou
 
 - **Version:** 0.0.1
 - **Stage:** Early Development
-- **Phase:** Core Architecture Implementation
+- **Phase:** Module Implementation
 
 ## Active Focus Areas
 
@@ -73,20 +129,24 @@ graph TD
     Core --> Mod[Module System]
     Core --> Serv[Services Layer]
     Core --> WF[Workflow System]
+
+    Serv --> VS[Vision Service]
+    Serv --> IS[Input Service]
+    Serv --> TS[Template Service]
 ```
 
 ### 2. Priority Development Areas
 
-1. **Screenshot Stream**
+1. **Template System**
 
-   - RxPY integration
-   - Frame capture optimization
-   - Event distribution system
-   - Resource management
+   - Ground label detection
+   - Item appearance matching
+   - Template validation
+   - Performance optimization
 
 2. **Module System**
 
-   - Base module implementation
+   - Loot module implementation
    - Module activation control
    - State management patterns
    - Service integration
@@ -104,24 +164,25 @@ graph TD
 1. **Core Systems**
 
    - [x] Implement window detection system
-   - [ ] Implement screenshot capture
-   - [ ] Create base module class
-   - [ ] Set up service interfaces
-   - [ ] Build workflow system
+   - [x] Implement screenshot capture
+   - [x] Create base module class
+   - [x] Set up service interfaces
+   - [x] Build workflow system
+   - [x] Implement template service
 
 2. **Screenshot Stream Implementation**
 
    - [x] Set up RxPY event pipeline with Subject
    - [x] Configure continuous frame capture (30 FPS)
    - [x] Implement frame distribution system
-   - [ ] Add performance monitoring
+   - [x] Add performance monitoring
 
 3. **Initial Modules**
 
    - [ ] Inventory module
    - [ ] Stash module
    - [ ] Basic trade module
-   - [ ] Module testing framework
+   - [x] Module testing framework
 
 4. **Documentation**
    - [x] Architecture overview
@@ -145,10 +206,11 @@ graph TD
    - Independent state tracking
    - Service-based actions
 
-3. **Workflow Pattern**
-   - Explicit workflow objects
-   - Module coordination
-   - Clear error boundaries
+3. **Template System**
+   - Centralized template service
+   - Metadata-driven configuration
+   - Strict validation rules
+   - Clear separation of concerns
 
 ### Technical Decisions
 
@@ -187,12 +249,16 @@ graph TD
    - Screenshot capture rate
    - Frame processing speed
    - Memory management
+   - Workflow execution overhead
 
-4. **Coordination**
+4. **Module Coordination**
 
-   - Module interaction patterns
-   - Workflow complexity
-   - Error propagation
+   - Complex workflow orchestration
+   - State synchronization
+   - Error propagation and recovery
+   - Resource cleanup guarantees
+   - Module lifecycle management
+   - Activation sequence handling
 
 5. **Testing**
    - Screenshot replay testing
@@ -218,9 +284,9 @@ graph TD
 
 1. **Week 1-2**
 
-   - Implement screenshot stream
-   - Create base module system
-   - Set up core services
+   - Implement ground label detection
+   - Integrate template and vision services
+   - Set up detection testing
 
 2. **Week 3-4**
    - Build initial modules

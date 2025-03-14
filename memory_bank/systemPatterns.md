@@ -29,9 +29,10 @@ graph TD
     subgraph Services
         VS[VisionService]
         IS[InputService]
+        TS[TemplateService]
     end
 
-    TM & SM & IM & LM --> VS & IS
+    TM & SM & IM & LM --> VS & IS & TS
 ```
 
 ### Core Components
@@ -64,6 +65,7 @@ graph TD
    - Hardware interaction layer
    - Vision processing tools
    - Common functionality abstraction
+   - Template management and validation
 
 5. **Workflows**
    - Complex operation orchestration
@@ -133,24 +135,49 @@ class InventoryModule(BaseModule):
 ### Workflow Implementation
 
 ```python
-class TradeWorkflow:
+class BaseWorkflow:
+    def __init__(self, modules: Sequence[BaseModule]) -> None:
+        self.modules = list(modules)
+        self.active = False
+        self._failed_activations: list[BaseModule] = []
+
+    async def activate_modules(self) -> None:
+        """Activate all modules with rollback on failure."""
+        try:
+            for module in self.modules:
+                if not module.active:
+                    await module.activate()
+                    self._failed_activations.append(module)
+            self.active = True
+            self._failed_activations = []
+        except Exception as e:
+            await self._cleanup_failed_activation()
+            raise ModuleActivationError(e)
+
+    async def deactivate_modules(self) -> None:
+        """Deactivate all modules with error collection."""
+        errors: list[Exception] = []
+        for module in self.modules:
+            if module.active:
+                try:
+                    await module.deactivate()
+                except Exception as e:
+                    errors.append(e)
+        self.active = False
+        if errors:
+            raise WorkflowError(errors)
+
+class TradeWorkflow(BaseWorkflow):
     def __init__(self, trade_module, stash_module, inventory_module):
-        self.trade = trade_module
-        self.stash = stash_module
-        self.inventory = inventory_module
+        super().__init__([trade_module, stash_module, inventory_module])
 
     async def execute(self):
+        await self.activate_modules()
         try:
-            await self.trade.activate()
-            await self.stash.activate()
-            await self.inventory.activate()
-
             # Workflow steps
-
+            pass
         finally:
-            self.trade.deactivate()
-            self.stash.deactivate()
-            self.inventory.deactivate()
+            await self.deactivate_modules()
 ```
 
 ## Code Organization
@@ -172,10 +199,51 @@ poe_sidekick/
 ├── services/
 │   ├── vision.py       # Vision service
 │   └── input.py        # Input service (mouse & keyboard)
-└── workflows/
-    ├── trade.py        # Trade workflow
-    └── craft.py        # Craft workflow
+├── workflows/
+│   ├── trade.py        # Trade workflow
+│   └── craft.py        # Craft workflow
+└── data/
+    └── templates/      # Shared template system
+        ├── ground_labels/    # Item labels on ground
+        │   ├── currency/     # Currency labels
+        │   ├── unique/       # Unique item labels
+        │   └── rare/         # Rare item labels
+        └── item_appearances/ # Items in inventory/stash
+            ├── currency/     # Currency appearances
+            ├── unique/       # Unique item appearances
+            └── rare/         # Rare item appearances
 ```
+
+### Template System Pattern
+
+1. **Template Organization**
+
+   - Shared template repository for all modules
+   - Separation between ground labels and inventory appearances
+   - Categorized by item type and rarity
+   - Metadata-driven configuration in metadata.json
+
+2. **Detection Strategy**
+
+   - Ground items: Color-based masking + template matching
+   - Inventory items: Direct template matching in grid positions
+   - Configurable detection thresholds
+   - HSV color range definitions for ground items
+
+3. **Template Service**
+
+   - Centralized template metadata management
+   - Template validation and error handling
+   - Lazy loading of templates
+   - Shared access across modules
+   - Clear separation from vision processing
+
+4. **Template Structure**
+   - Version controlled templates
+   - Category-based organization
+   - Standardized metadata format
+   - Configurable detection parameters
+   - Grid size specifications for inventory items
 
 ## Best Practices
 
@@ -185,13 +253,21 @@ poe_sidekick/
 - Handle module-specific state internally
 - Use services for shared functionality
 - Clear activation/deactivation boundaries
+- Implement proper error handling and recovery
+- Ensure resource cleanup in all cases
+- Use type hints for better maintainability
+- Document public APIs thoroughly
 
 ### 2. Workflow Development
 
-- Clear error handling and recovery
-- Proper module coordination
-- Resource cleanup in all cases
-- Sequential operation management
+- Inherit from BaseWorkflow for consistent behavior
+- Implement proper error handling with rollback
+- Ensure sequential module activation
+- Guarantee resource cleanup in all cases
+- Handle activation failures gracefully
+- Collect and propagate errors appropriately
+- Document workflow steps and requirements
+- Test error scenarios thoroughly
 
 ### 3. Service Development
 
@@ -202,10 +278,14 @@ poe_sidekick/
 
 ### 4. Testing Strategy
 
-- Unit tests for modules
-- Integration tests for workflows
-- Service mocking
-- Screenshot replay testing
+- Unit tests for modules with high coverage
+- Integration tests for workflow coordination
+- Error scenario testing with mocked failures
+- Resource cleanup verification
+- Service mocking and dependency injection
+- Screenshot replay testing for visual components
+- Performance benchmarking for critical paths
+- State transition testing
 
 ## Anti-Patterns to Avoid
 
