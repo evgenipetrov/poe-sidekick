@@ -1,0 +1,23 @@
+{
+    "trade": {
+        "timeouts": {
+            "trade_request": 30.0,
+            "inventory_check": 5.0,
+            "stash_operation": 10.0
+        },
+        "retry": {
+            "max_attempts": 3,
+            "delay_between_attempts": 2.0
+        }
+    },
+    "craft": {
+        "timeouts": {
+            "item_check": 3.0,
+            "craft_operation": 5.0
+        },
+        "safety": {
+            "confirm_high_value_crafts": true,
+            "min_high_value_threshold": 50
+        }
+    }
+}

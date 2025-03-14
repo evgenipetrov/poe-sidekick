@@ -8,9 +8,14 @@ import logging
 from typing import Protocol
 
 from poe_sidekick.core.window import GameWindow
+from poe_sidekick.services.config import ConfigService
 
-# Error messages
-WINDOW_NOT_FOUND_ERROR = "Path of Exile 2 window not found"
+
+class WindowError(RuntimeError):
+    """Exception raised for window-related errors."""
+
+    def __init__(self, window_title: str) -> None:
+        super().__init__(f"{window_title} window not found")
 
 
 class Module(Protocol):
@@ -22,6 +27,7 @@ class Engine:
 
     def __init__(self) -> None:
         """Initialize the Engine instance."""
+        self._config = ConfigService()
         self._window = GameWindow()
         self._screenshot_stream = None  # Will be initialized later
         self._modules: dict[str, Module] = {}  # Will hold active modules
@@ -36,8 +42,12 @@ class Engine:
         """
         self._logger.info("Starting POE Sidekick engine...")
 
+        # Load core configuration
+        await self._config.load_config("core")
+        window_title = self._config.get_value("core", "window.title")
+
         if not self._window.find_window():
-            raise RuntimeError(WINDOW_NOT_FOUND_ERROR)
+            raise WindowError(window_title)
 
         self._running = True
         self._window.bring_to_front()
@@ -48,7 +58,9 @@ class Engine:
         """Stop the engine and cleanup resources."""
         self._logger.info("Stopping POE Sidekick engine...")
         self._running = False
-        await self._cleanup_components()
+        # Get timeout from config or use default
+        timeout = self._config.get_value("core", "engine.shutdown_timeout", 5.0)
+        await self._cleanup_components(timeout)
         self._logger.info("POE Sidekick engine stopped")
 
     async def _initialize_components(self) -> None:
@@ -71,7 +83,7 @@ class Engine:
             await self.stop()
             raise
 
-    async def _cleanup_components(self) -> None:
+    async def _cleanup_components(self, timeout: float) -> None:
         """Cleanup all components properly."""
         # Clean up modules
         for module in self._modules.values():
