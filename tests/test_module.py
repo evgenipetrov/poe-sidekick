@@ -21,11 +21,11 @@ class CustomModule(BaseModule):
     def _process_frame(self, frame: np.ndarray) -> None:
         self.processed_frames.append(frame)
 
-    def _on_activate(self) -> None:
+    async def _on_activate(self) -> None:
         """Test implementation of activate hook."""
         pass
 
-    def _on_deactivate(self) -> None:
+    async def _on_deactivate(self) -> None:
         """Test implementation of deactivate hook."""
         pass
 
@@ -54,35 +54,38 @@ def test_module_initialization(custom_module):
     assert isinstance(custom_module._frame_subject, Subject)
 
 
-def test_module_activation(custom_module):
+@pytest.mark.asyncio
+async def test_module_activation(custom_module):
     """Test module activation and deactivation."""
     # Test activation
-    custom_module.activate()
+    await custom_module.activate()
     assert custom_module.active
 
     # Test double activation (should not raise)
-    custom_module.activate()
+    await custom_module.activate()
     assert custom_module.active
 
     # Test deactivation
-    custom_module.deactivate()
+    await custom_module.deactivate()
     assert not custom_module.active
 
     # Test double deactivation (should not raise)
-    custom_module.deactivate()
+    await custom_module.deactivate()
     assert not custom_module.active
 
 
-def test_disabled_module_activation(mock_services):
+@pytest.mark.asyncio
+async def test_disabled_module_activation(mock_services):
     """Test that disabled modules cannot be activated."""
     config = ModuleConfig(name="disabled_module", enabled=False)
     module = CustomModule(config, mock_services)
 
-    module.activate()
+    await module.activate()
     assert not module.active
 
 
-def test_frame_processing(custom_module):
+@pytest.mark.asyncio
+async def test_frame_processing(custom_module):
     """Test frame processing workflow."""
     # Create test frame
     frame = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -92,13 +95,14 @@ def test_frame_processing(custom_module):
     assert len(custom_module.processed_frames) == 0
 
     # Activate and process frame
-    custom_module.activate()
+    await custom_module.activate()
     custom_module.process_frame(frame)
     assert len(custom_module.processed_frames) == 1
     assert np.array_equal(custom_module.processed_frames[0], frame)
 
 
-def test_frame_subscription(custom_module):
+@pytest.mark.asyncio
+async def test_frame_subscription(custom_module):
     """Test frame subscription functionality."""
     frame = np.zeros((100, 100, 3), dtype=np.uint8)
     received_frames = []
@@ -107,14 +111,15 @@ def test_frame_subscription(custom_module):
     custom_module.subscribe_to_frames(lambda f: received_frames.append(f))
 
     # Activate and process frame
-    custom_module.activate()
+    await custom_module.activate()
     custom_module.process_frame(frame)
 
     assert len(received_frames) == 1
     assert np.array_equal(received_frames[0], frame)
 
 
-def test_state_updates(custom_module):
+@pytest.mark.asyncio
+async def test_state_updates(custom_module):
     """Test module state management."""
     # Initial state should be empty
     assert custom_module.state == {}
@@ -132,7 +137,8 @@ def test_state_updates(custom_module):
     assert "new_key" not in custom_module.state
 
 
-def test_example_module_functionality(example_module):
+@pytest.mark.asyncio
+async def test_example_module_functionality(example_module):
     """Test the TestModule implementation."""
     # Create test frame
     frame = np.zeros((100, 100, 3), dtype=np.uint8)
@@ -142,7 +148,7 @@ def test_example_module_functionality(example_module):
     assert example_module.state.get("last_frame_shape") is None
 
     # Activate and process frames
-    example_module.activate()
+    await example_module.activate()
     for _ in range(3):
         example_module.process_frame(frame)
 
@@ -151,6 +157,6 @@ def test_example_module_functionality(example_module):
     assert example_module.state["last_frame_shape"] == frame.shape
 
     # Test deactivation resets
-    example_module.deactivate()
-    example_module.activate()  # Should reset counter
+    await example_module.deactivate()
+    await example_module.activate()  # Should reset counter
     assert example_module.state["frame_count"] == 0

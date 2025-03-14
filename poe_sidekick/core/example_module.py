@@ -44,13 +44,13 @@ class ExampleModule(BaseModule):
             "last_frame_shape": frame.shape if frame is not None else None,
         })
 
-    def _on_activate(self) -> None:
+    async def _on_activate(self) -> None:
         """Activation handler that resets frame counter."""
         self._frame_count = 0
         self._last_frame = None
         self.update_state({"frame_count": self._frame_count, "last_frame_shape": None})
         self.logger.info("Example module activated - frame counter reset")
 
-    def _on_deactivate(self) -> None:
+    async def _on_deactivate(self) -> None:
         """Deactivation handler that logs final frame count."""
         self.logger.info(f"Example module deactivated - processed {self._frame_count} frames")

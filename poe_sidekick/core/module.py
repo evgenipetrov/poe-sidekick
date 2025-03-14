@@ -58,7 +58,7 @@ class BaseModule(ABC):
         """
         return self._state.copy()
 
-    def activate(self) -> None:
+    async def activate(self) -> None:
         """Activate the module.
 
         This will:
@@ -73,14 +73,14 @@ class BaseModule(ABC):
             self.logger.info(f"Module {self.name} is disabled, skipping activation")
             return
         try:
-            self._on_activate()
+            await self._on_activate()
             self.active = True
             self.logger.info(f"Module {self.name} activated")
         except Exception:
             self.logger.exception(f"Failed to activate module {self.name}")
             raise
 
-    def deactivate(self) -> None:
+    async def deactivate(self) -> None:
         """Deactivate the module.
 
         This will:
@@ -92,7 +92,7 @@ class BaseModule(ABC):
             Exception: If deactivation fails
         """
         try:
-            self._on_deactivate()
+            await self._on_deactivate()
             self.active = False
             self.logger.info(f"Module {self.name} deactivated")
         except Exception:
@@ -144,7 +144,7 @@ class BaseModule(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _on_activate(self) -> None:
+    async def _on_activate(self) -> None:
         """Called when the module is activated.
 
         Override to perform module-specific activation tasks.
@@ -152,7 +152,7 @@ class BaseModule(ABC):
         pass
 
     @abstractmethod
-    def _on_deactivate(self) -> None:
+    async def _on_deactivate(self) -> None:
         """Called when the module is deactivated.
 
         Override to perform module-specific cleanup tasks.
