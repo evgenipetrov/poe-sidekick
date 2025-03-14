@@ -67,13 +67,18 @@ graph LR
 
 3. **Service Layer**
 
-   - [ ] Vision service
+   - [x] Vision service
+     - Template matching with caching
+     - OCR text recognition
+     - Game state detection
+     - Modern type hints
+     - Full test coverage
    - [ ] Keyboard service
    - [x] Mouse service (InputService)
      - Basic mouse control
      - Safety features (delays, failsafe)
      - Full test coverage
-   - Progress: 33%
+   - Progress: 66%
 
 4. **Workflow System**
    - [ ] Base workflow class
