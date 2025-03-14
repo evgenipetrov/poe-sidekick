@@ -11,25 +11,25 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
-pywin32 = "^306"
-numpy = "^1.24.0"
-opencv-python = "^4.8.0"
-rx = "^3.2.0"
+python = ">=3.12,<4.0"
+pywin32 = "*"
+numpy = "*"
+opencv-python = "*"
+rx = "*"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.0"
-pytest-cov = "^4.0.0"
-pytest-asyncio = "^0.23.0"
-deptry = "^0.16.2"
-mypy = "^1.5.1"
-pre-commit = "^3.4.0"
-tox = "^4.11.1"
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
+deptry = "*"
+mypy = "*"
+pre-commit = "*"
+tox = "*"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.4.2"
-mkdocs-material = "^9.2.7"
-mkdocstrings = {extras = ["python"], version = "^0.26.1"}
+mkdocs = "*"
+mkdocs-material = "*"
+mkdocstrings = {extras = ["python"], version = "*"}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
