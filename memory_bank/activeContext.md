@@ -91,11 +91,11 @@ graph TD
    - [ ] Set up service interfaces
    - [ ] Build workflow system
 
-2. **Next Steps for Screenshot Stream**
+2. **Screenshot Stream Implementation**
 
-   - [ ] Set up RxPY event pipeline
-   - [ ] Configure frame capture from detected window
-   - [ ] Implement frame distribution system
+   - [x] Set up RxPY event pipeline with Subject
+   - [x] Configure continuous frame capture (30 FPS)
+   - [x] Implement frame distribution system
    - [ ] Add performance monitoring
 
 3. **Initial Modules**
@@ -157,19 +157,26 @@ graph TD
    - Retry mechanisms and timeouts
    - Recovery from window loss
 
-2. **Performance**
+2. **Screenshot Stream Performance**
+
+   - Frame capture rate optimization
+   - Memory usage monitoring
+   - CPU load balancing
+   - Frame buffering strategy
+
+3. **Performance**
 
    - Screenshot capture rate
    - Frame processing speed
    - Memory management
 
-3. **Coordination**
+4. **Coordination**
 
    - Module interaction patterns
    - Workflow complexity
    - Error propagation
 
-4. **Testing**
+5. **Testing**
    - Screenshot replay testing
    - Module isolation
    - Workflow validation

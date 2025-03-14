@@ -16,6 +16,7 @@ pywin32 = "*"
 numpy = "*"
 opencv-python = "*"
 rx = "*"
+dxcam = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"

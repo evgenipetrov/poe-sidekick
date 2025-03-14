@@ -48,10 +48,10 @@ graph LR
 1. **Screenshot Stream**
 
    - [x] Game window detection
-   - [ ] RxPY integration
-   - [ ] Frame capture system
-   - [ ] Event distribution
-   - Progress: 15%
+   - [x] RxPY integration
+   - [x] Frame capture system
+   - [x] Event distribution
+   - Progress: 100%
 
 2. **Module System**
 
