@@ -1,0 +1,183 @@
+# Cline Rules: POE Sidekick
+
+## Project Intelligence
+
+### Critical Implementation Paths
+1. Computer Vision System
+   - Screen capture requires high performance
+   - Image processing must be optimized
+   - Pattern recognition accuracy is crucial
+
+2. Plugin Architecture
+   - Factory pattern for plugin creation
+   - Event-driven architecture
+   - Strict interface compliance
+
+3. Service Layer
+   - Dependency injection for services
+   - Configuration-driven setup
+   - Interface-based design
+
+### Workflow Patterns
+1. Development Process
+   - Feature branch workflow
+   - PR reviews required
+   - Tests must pass before merge
+   - Documentation updates with code
+
+2. Code Organization
+   - Modular architecture
+   - Clear separation of concerns
+   - Plugin-based feature development
+   - Service-oriented design
+
+### Testing Approach
+1. Unit Tests
+   - Required for all new code
+   - Mock external dependencies
+   - Coverage must be >90%
+   - Fast execution essential
+
+2. Integration Tests
+   - Focus on component interactions
+   - Test main workflows
+   - Cover error cases
+   - Performance benchmarking
+
+## Known Challenges
+
+### Performance Critical Areas
+1. Screen Capture
+   - Minimize CPU usage
+   - Optimize memory allocation
+   - Reduce latency
+
+2. Image Processing
+   - Efficient algorithms required
+   - Balance accuracy vs speed
+   - Resource management crucial
+
+### Evolution Points
+1. Plugin System
+   - Start simple, expand gradually
+   - Focus on core interfaces
+   - Plan for versioning
+   - Consider compatibility
+
+2. Service Layer
+   - Begin with basic services
+   - Add features incrementally
+   - Maintain interface stability
+   - Document changes carefully
+
+## Tool Usage Patterns
+
+### Development Tools
+1. Poetry
+   - Use for all dependency management
+   - Virtual environment handling
+   - Package publishing
+   - Version management
+
+2. Pre-commit
+   - Run on all commits
+   - Enforce code style
+   - Check types
+   - Run fast tests
+
+### Testing Tools
+1. pytest
+   - Use fixtures for setup
+   - Parametrize similar tests
+   - Keep tests focused
+   - Mock external systems
+
+2. mypy
+   - Strict type checking
+   - No implicit Any
+   - Complete type coverage
+   - Document type decisions
+
+## Code Style Preferences
+
+### Python Patterns
+1. Type Hints
+   - Required for all functions
+   - Use literals where possible
+   - Document complex types
+   - Validate with mypy
+
+2. Documentation
+   - Clear docstrings
+   - Examples in docstrings
+   - Update with changes
+   - Keep current
+
+### Architecture Patterns
+1. Services
+   - Interface-based design
+   - Dependency injection
+   - Configuration driven
+   - Clear responsibilities
+
+2. Plugins
+   - Standard interfaces
+   - Self-contained
+   - Clear documentation
+   - Version compatible
+
+## User Preferences
+
+### Development Flow
+1. Code First
+   - Implement core functionality
+   - Add tests
+   - Update documentation
+   - Review and refine
+
+2. Documentation
+   - Keep README current
+   - Update API docs
+   - Maintain examples
+   - Clear changelog
+
+### Review Process
+1. Code Reviews
+   - Check implementation
+   - Verify tests
+   - Confirm documentation
+   - Performance impact
+
+2. Testing
+   - Run full suite
+   - Check coverage
+   - Verify performance
+   - Document results
+
+## Project Evolution
+
+### Technical Decisions
+1. Python 3.8+
+   - Modern features
+   - Type hints
+   - Performance benefits
+   - Stable platform
+
+2. Testing Framework
+   - pytest for flexibility
+   - Coverage tracking
+   - Performance testing
+   - Integration support
+
+### Future Considerations
+1. Compatibility
+   - Version management
+   - API stability
+   - Plugin compatibility
+   - Update strategy
+
+2. Scaling
+   - Performance optimization
+   - Resource management
+   - Feature prioritization
+   - User growth
