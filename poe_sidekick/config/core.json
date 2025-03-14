@@ -9,5 +9,20 @@
     "engine": {
         "shutdown_timeout": 5.0,
         "module_init_timeout": 3.0
+    },
+    "screenshot_stream": {
+        "metrics": {
+            "frame_time_window": 100,
+            "memory_window": 100,
+            "processing_window": 100,
+            "metrics_save_interval": 300,
+            "debug_frame_interval": 30
+        },
+        "performance": {
+            "target_fps": 30,
+            "frame_buffer_size": 10,
+            "max_memory_mb": 500,
+            "max_processing_ms": 33
+        }
     }
 }

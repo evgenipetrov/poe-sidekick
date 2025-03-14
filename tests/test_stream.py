@@ -1,21 +1,47 @@
 """Tests for screenshot stream functionality."""
 
 import asyncio
+from collections import deque
 from unittest.mock import Mock, patch
 
 import pytest
 from rx.subject import Subject
 
 from poe_sidekick.core.stream import ScreenshotStream
+from poe_sidekick.services.config import ConfigService
 
 
 @pytest.fixture
-def stream():
-    return ScreenshotStream()
+def config_service():
+    """Create a mock config service with test values."""
+    config = Mock(spec=ConfigService)
+    config.get_value.return_value = {
+        "metrics": {
+            "frame_time_window": 10,
+            "memory_window": 10,
+            "processing_window": 10,
+            "metrics_save_interval": 300,
+            "debug_frame_interval": 30,
+        },
+        "performance": {"target_fps": 30, "frame_buffer_size": 10, "max_memory_mb": 500, "max_processing_ms": 33},
+    }
+    return config
+
+
+@pytest.fixture
+@patch("psutil.Process")
+def stream(mock_process, config_service):
+    """Create a ScreenshotStream with mock config service."""
+    mock_memory_info = Mock()
+    mock_memory_info.rss = 500 * 1024 * 1024  # 500MB
+    mock_process_instance = Mock()
+    mock_process_instance.memory_info.return_value = mock_memory_info
+    mock_process.return_value = mock_process_instance
+    return ScreenshotStream(config_service)
 
 
 @patch("dxcam.create")
-async def test_start_creates_camera(mock_create, stream):
+async def test_start_creates_camera(mock_create, stream, config_service):
     """Test that start initializes the camera."""
     mock_camera = Mock()
     mock_create.return_value = mock_camera
@@ -28,7 +54,7 @@ async def test_start_creates_camera(mock_create, stream):
 
 
 @patch("dxcam.create")
-async def test_start_with_region(mock_create, stream):
+async def test_start_with_region(mock_create, stream, config_service):
     """Test that start sets camera region when provided."""
     mock_camera = Mock()
     mock_create.return_value = mock_camera
@@ -37,6 +63,51 @@ async def test_start_with_region(mock_create, stream):
     await stream.start(region)
 
     assert mock_camera.region == region
+
+
+@patch("dxcam.create")
+async def test_metrics_tracking(mock_create, stream):
+    """Test that performance metrics are tracked."""
+    # Setup camera mock
+    mock_camera = Mock()
+    mock_create.return_value = mock_camera
+
+    # Simulate frame capture
+    frame = Mock()
+    mock_camera.grab.return_value = frame
+
+    await stream.start()
+    await asyncio.sleep(0.1)  # Let it capture a few frames
+    await stream.stop()
+
+    # Print actual values for debugging
+    print("Memory values:", list(stream.metrics["memory_usage"]))
+
+    # Verify metrics
+    metrics = stream.metrics
+    assert isinstance(metrics["frame_times"], deque)
+    assert isinstance(metrics["memory_usage"], deque)
+    assert isinstance(metrics["processing_delays"], deque)
+    assert isinstance(metrics["dropped_frames"], int)
+
+    assert len(metrics["frame_times"]) > 0
+    assert len(metrics["memory_usage"]) > 0
+    assert len(metrics["processing_delays"]) > 0
+
+    # Check memory usage values
+    assert all(mem == 500.0 for mem in metrics["memory_usage"])  # Should be 500MB from our mock
+
+
+def test_metrics_initialization(stream, config_service):
+    """Test that metrics are properly initialized from config."""
+    config = config_service.get_value("core", "screenshot_stream")
+    metrics = stream.metrics
+
+    assert len(metrics["frame_times"]) == 0
+    assert metrics["frame_times"].maxlen == config["metrics"]["frame_time_window"]
+    assert metrics["memory_usage"].maxlen == config["metrics"]["memory_window"]
+    assert metrics["processing_delays"].maxlen == config["metrics"]["processing_window"]
+    assert metrics["dropped_frames"] == 0
 
 
 @patch("dxcam.create")

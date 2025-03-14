@@ -1,6 +1,23 @@
 """Type definitions for external dependencies."""
 
-from typing import Optional, Protocol
+from collections import deque
+from typing import Optional, Protocol, TypedDict
+
+
+class StreamMetrics(TypedDict):
+    """Type for screenshot stream metrics."""
+
+    frame_times: deque[float]  # Frame capture times in ms
+    memory_usage: deque[float]  # Memory usage in MB
+    processing_delays: deque[float]  # Processing delays in ms
+    dropped_frames: int
+
+
+class StreamConfig(TypedDict):
+    """Type for screenshot stream configuration."""
+
+    metrics: dict[str, int]  # Metric configuration values
+    performance: dict[str, int | float]  # Performance thresholds
 
 
 class DXCamera(Protocol):

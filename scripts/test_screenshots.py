@@ -6,6 +6,7 @@ from pathlib import Path
 
 from poe_sidekick.core.stream import ScreenshotStream
 from poe_sidekick.core.window import GameWindow
+from poe_sidekick.services.config import ConfigService
 
 
 async def main():
@@ -33,8 +34,12 @@ async def main():
 
     logging.info(f"Found game window at region: {region}")
 
-    # Create and start the screenshot stream
-    stream = ScreenshotStream()
+    # Initialize config service
+    config_service = ConfigService()
+    await config_service.load_config("core")
+
+    # Create and start the screenshot stream with config
+    stream = ScreenshotStream(config_service)
 
     try:
         # Start capturing with game window region

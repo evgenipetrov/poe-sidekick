@@ -17,6 +17,7 @@ numpy = "*"
 opencv-python = "*"
 rx = "*"
 dxcam = "*"
+psutil = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "*"
