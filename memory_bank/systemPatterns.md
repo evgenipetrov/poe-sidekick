@@ -37,14 +37,21 @@ graph TD
 
 ### Core Components
 
-1. **Screenshot Stream**
+1. **Engine**
+
+   - Application lifecycle management
+   - Component initialization and cleanup
+   - Error handling and recovery
+   - Core system orchestration
+
+2. **Screenshot Stream**
 
    - Continuous game state capture using RxPY
    - Frame distribution to active modules
    - Efficient resource management
    - Configurable capture rate
 
-2. **Modules**
+3. **Modules**
 
    - Self-contained functionality units
    - Independent state tracking
@@ -52,14 +59,14 @@ graph TD
    - Activation/deactivation control
    - Examples: Inventory, Stash, Trade, Loot
 
-3. **Services**
+4. **Services**
 
    - Shared utility functions
    - Hardware interaction layer
    - Vision processing tools
    - Common functionality abstraction
 
-4. **Workflows**
+5. **Workflows**
    - Complex operation orchestration
    - Module coordination
    - State management
@@ -154,8 +161,10 @@ class TradeWorkflow:
 ```
 poe_sidekick/
 ├── core/
-│   ├── stream.py       # Screenshot stream
-│   └── workflow.py     # Workflow base
+│   ├── engine.py      # Core engine
+│   ├── stream.py      # Screenshot stream
+│   ├── window.py      # Game window
+│   └── workflow.py    # Workflow base
 ├── modules/
 │   ├── base.py         # Base module
 │   ├── inventory.py    # Inventory module

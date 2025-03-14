@@ -1,5 +1,40 @@
 # Active Context: POE Sidekick
 
+## Recent Changes
+
+### Core Architecture Refactoring
+
+1. Added `Engine` class in `core/engine.py`
+
+   - Centralized application lifecycle management
+   - Proper async initialization and cleanup
+   - Component orchestration (modules, workflows)
+   - Error handling and recovery
+
+2. Updated `__main__.py`
+   - Migrated to async entry point
+   - Added proper signal handling
+   - Structured logging setup
+   - Clean shutdown process
+
+### Current Focus
+
+The main focus is on establishing a solid core architecture:
+
+- Engine as central system coordinator
+- Clear component lifecycle management
+- Proper async/await patterns
+- Error handling and recovery
+- Signal handling for clean shutdown
+
+### Next Steps
+
+1. Implement ScreenshotStream integration in Engine
+2. Set up module registration system
+3. Implement workflow orchestration
+4. Add comprehensive error handling and recovery
+5. Write tests for Engine and core functionality
+
 ## Current Development Phase
 
 ### Project Status
