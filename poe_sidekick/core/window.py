@@ -12,6 +12,8 @@ import win32con
 import win32gui
 import win32process
 
+from poe_sidekick.services.config import ConfigService
+
 
 class GameWindow:
     """Class for detecting and tracking the Path of Exile 2 game window."""
@@ -19,8 +21,18 @@ class GameWindow:
     def __init__(self) -> None:
         """Initialize the GameWindow instance."""
         self._hwnd: Optional[int] = None
-        self._title: str = "Path of Exile 2"  # Game window title to search for
-        self._exe_name: str = "PathOfExile2.exe"  # Game executable name
+        self._config = ConfigService()
+        self._title: Optional[str] = None
+        self._exe_name: Optional[str] = None
+
+    async def initialize(self) -> None:
+        """Initialize window properties from config.
+
+        This must be called before using any window detection methods.
+        """
+        await self._config.load_config("core")
+        self._title = self._config.get_value("core", "window.title")
+        self._exe_name = self._config.get_value("core", "window.executable")
 
     def _is_game_process(self, hwnd: int) -> bool:
         """Check if the window belongs to the Path of Exile 2 process.
@@ -61,6 +73,8 @@ class GameWindow:
         """
 
         def callback(hwnd: int, _: Any) -> bool:
+            if not self._title or not self._exe_name:
+                return False
             if win32gui.GetWindowText(hwnd) == self._title and self._is_game_process(hwnd):
                 self._hwnd = hwnd
                 return False  # Stop enumeration
@@ -115,7 +129,7 @@ class GameWindow:
             return None
         return (rect[2] - rect[0], rect[3] - rect[1])
 
-    def bring_to_front(self) -> bool:
+    async def bring_to_front(self) -> bool:
         """Bring the game window to the foreground.
 
         Returns:

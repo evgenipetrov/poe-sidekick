@@ -1,6 +1,6 @@
 """Tests for the window detection module."""
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 import win32con
@@ -29,10 +29,31 @@ def mock_win32api():
         yield mock
 
 
-def test_find_window_when_game_running(mock_win32gui, mock_win32process, mock_win32api):
+@pytest.fixture
+def mock_config():
+    """Fixture to mock ConfigService."""
+    with patch("poe_sidekick.core.window.ConfigService") as mock:
+        instance = Mock()
+        instance.get_value.side_effect = lambda mod, key: {
+            "window.title": "Path of Exile 2",
+            "window.executable": "PathOfExile2.exe",
+        }.get(key)
+
+        # Mock the async load_config method
+        async def mock_load_config(config_name):
+            pass
+
+        instance.load_config = mock_load_config
+
+        mock.return_value = instance
+        yield mock
+
+
+async def test_find_window_when_game_running(mock_win32gui, mock_win32process, mock_win32api, mock_config):
     """Test finding the game window when it's running."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     mock_hwnd = 12345
 
     def mock_enum_windows(callback, _):
@@ -55,10 +76,11 @@ def test_find_window_when_game_running(mock_win32gui, mock_win32process, mock_wi
     assert window._hwnd == mock_hwnd
 
 
-def test_find_window_when_game_not_running(mock_win32gui, mock_win32process, mock_win32api):
+async def test_find_window_when_game_not_running(mock_win32gui, mock_win32process, mock_win32api, mock_config):
     """Test finding the game window when it's not running."""
     # Setup
     window = GameWindow()
+    await window.initialize()
 
     def mock_enum_windows(callback, _):
         # Simulate no game window found
@@ -75,10 +97,11 @@ def test_find_window_when_game_not_running(mock_win32gui, mock_win32process, moc
     assert window._hwnd is None
 
 
-def test_is_window_focused_when_focused(mock_win32gui):
+async def test_is_window_focused_when_focused(mock_win32gui, mock_config):
     """Test checking if window is focused when it is."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     mock_win32gui.GetForegroundWindow.return_value = 12345
 
@@ -89,10 +112,11 @@ def test_is_window_focused_when_focused(mock_win32gui):
     assert result is True
 
 
-def test_is_window_focused_when_not_focused(mock_win32gui):
+async def test_is_window_focused_when_not_focused(mock_win32gui, mock_config):
     """Test checking if window is focused when it's not."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     mock_win32gui.GetForegroundWindow.return_value = 67890
 
@@ -103,10 +127,11 @@ def test_is_window_focused_when_not_focused(mock_win32gui):
     assert result is False
 
 
-def test_get_window_rect_when_window_exists(mock_win32gui):
+async def test_get_window_rect_when_window_exists(mock_win32gui, mock_config):
     """Test getting window rect when window exists."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     expected_rect = (0, 0, 1920, 1080)
     mock_win32gui.GetWindowRect.return_value = expected_rect
@@ -118,10 +143,11 @@ def test_get_window_rect_when_window_exists(mock_win32gui):
     assert result == expected_rect
 
 
-def test_get_window_rect_when_error_occurs(mock_win32gui):
+async def test_get_window_rect_when_error_occurs(mock_win32gui, mock_config):
     """Test getting window rect when win32gui error occurs."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     mock_win32gui.GetWindowRect.side_effect = Exception("win32gui.error")
 
@@ -133,15 +159,16 @@ def test_get_window_rect_when_error_occurs(mock_win32gui):
     assert window._hwnd is None
 
 
-def test_bring_to_front_when_minimized(mock_win32gui):
+async def test_bring_to_front_when_minimized(mock_win32gui, mock_config):
     """Test bringing window to front when it's minimized."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     mock_win32gui.IsIconic.return_value = True
 
     # Execute
-    result = window.bring_to_front()
+    result = await window.bring_to_front()
 
     # Assert
     assert result is True
@@ -149,15 +176,16 @@ def test_bring_to_front_when_minimized(mock_win32gui):
     mock_win32gui.SetForegroundWindow.assert_called_once_with(12345)
 
 
-def test_bring_to_front_when_error_occurs(mock_win32gui):
+async def test_bring_to_front_when_error_occurs(mock_win32gui, mock_config):
     """Test bringing window to front when error occurs."""
     # Setup
     window = GameWindow()
+    await window.initialize()
     window._hwnd = 12345
     mock_win32gui.SetForegroundWindow.side_effect = Exception("win32gui.error")
 
     # Execute
-    result = window.bring_to_front()
+    result = await window.bring_to_front()
 
     # Assert
     assert result is False

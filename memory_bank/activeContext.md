@@ -24,8 +24,9 @@ The main focus is on establishing a solid core architecture:
 - Engine as central system coordinator
 - Clear component lifecycle management
 - Proper async/await patterns
-- Error handling and recovery
+- Error handling and recovery with retries
 - Signal handling for clean shutdown
+- Robust window detection and retry mechanism
 
 ### Next Steps
 
@@ -150,19 +151,25 @@ graph TD
 
 ### Technical Challenges
 
-1. **Performance**
+1. **Window Management**
+
+   - Window detection reliability
+   - Retry mechanisms and timeouts
+   - Recovery from window loss
+
+2. **Performance**
 
    - Screenshot capture rate
    - Frame processing speed
    - Memory management
 
-2. **Coordination**
+3. **Coordination**
 
    - Module interaction patterns
    - Workflow complexity
    - Error propagation
 
-3. **Testing**
+4. **Testing**
    - Screenshot replay testing
    - Module isolation
    - Workflow validation
