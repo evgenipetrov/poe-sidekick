@@ -28,11 +28,10 @@ graph TD
 
     subgraph Services
         VS[VisionService]
-        KS[KeyboardService]
-        MS[MouseService]
+        IS[InputService]
     end
 
-    TM & SM & IM & LM --> VS & KS & MS
+    TM & SM & IM & LM --> VS & IS
 ```
 
 ### Core Components
@@ -172,8 +171,7 @@ poe_sidekick/
 │   └── trade.py        # Trade module
 ├── services/
 │   ├── vision.py       # Vision service
-│   ├── keyboard.py     # Keyboard service
-│   └── mouse.py        # Mouse service
+│   └── input.py        # Input service (mouse & keyboard)
 └── workflows/
     ├── trade.py        # Trade workflow
     └── craft.py        # Craft workflow

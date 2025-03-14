@@ -65,7 +65,7 @@ graph LR
    - [x] Unit test coverage
    - Progress: 100% - COMPLETED
 
-3. **Service Layer**
+3. **Service Layer** ✅
 
    - [x] Vision service
      - Template matching with caching
@@ -73,12 +73,13 @@ graph LR
      - Game state detection
      - Modern type hints
      - Full test coverage
-   - [ ] Keyboard service
-   - [x] Mouse service (InputService)
-     - Basic mouse control
+   - [x] Input service
+     - Mouse control (move, click, hold/release)
+     - Keyboard control (press, release, type)
      - Safety features (delays, failsafe)
+     - Configurable behavior
      - Full test coverage
-   - Progress: 66%
+   - Progress: 100% - COMPLETED
 
 4. **Workflow System**
    - [ ] Base workflow class

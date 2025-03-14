@@ -40,13 +40,6 @@ Having completed the core Screenshot Stream implementation and Module System fou
 
 #### Current Priority
 
-- Service Layer Completion:
-  - Vision service implementation
-    - Modernized type hints
-    - Improved code quality
-    - Full test coverage
-  - Keyboard input integration
-  - Service integration testing
 - Initial Module Implementations:
   - Inventory module design and implementation
   - Stash module architecture
