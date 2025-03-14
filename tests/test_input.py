@@ -19,14 +19,16 @@ def test_config_defaults():
     config = InputConfig()
     assert config.min_delay_seconds == 0.05
     assert config.cursor_speed == 1.0
+    assert config.key_press_duration == 0.1
 
 
 def test_custom_config():
     """Test custom configuration values."""
-    config = InputConfig(min_delay_seconds=0.1, cursor_speed=2.0)
+    config = InputConfig(min_delay_seconds=0.1, cursor_speed=2.0, key_press_duration=0.2)
     service = InputService(config)
     assert service.config.min_delay_seconds == 0.1
     assert service.config.cursor_speed == 2.0
+    assert service.config.key_press_duration == 0.2
 
 
 @patch("pyautogui.position")
@@ -83,6 +85,51 @@ def test_release_left(mock_up):
 
     service.release_left()
     mock_up.assert_called_once_with(button="left")
+
+
+@patch("pyautogui.keyDown")
+def test_press_key(mock_keydown):
+    """Test pressing a key."""
+    service = InputService()
+
+    service.press_key("a")
+    mock_keydown.assert_called_once_with("a")
+
+
+@patch("pyautogui.keyUp")
+def test_release_key(mock_keyup):
+    """Test releasing a key."""
+    service = InputService()
+
+    service.release_key("a")
+    mock_keyup.assert_called_once_with("a")
+
+
+@patch("pyautogui.write")
+def test_type_string_default_interval(mock_write):
+    """Test typing string with default interval."""
+    service = InputService(InputConfig(min_delay_seconds=0.1))
+
+    service.type_string("test")
+    mock_write.assert_called_once_with("test", interval=0.1)
+
+
+@patch("pyautogui.write")
+def test_type_string_custom_interval(mock_write):
+    """Test typing string with custom interval."""
+    service = InputService()
+
+    service.type_string("test", interval=0.2)
+    mock_write.assert_called_once_with("test", interval=0.2)
+
+
+@patch("pyautogui.press")
+def test_tap_key(mock_press):
+    """Test tapping a key."""
+    service = InputService()
+
+    service.tap_key("a")
+    mock_press.assert_called_once_with("a")
 
 
 def test_enforce_delay():

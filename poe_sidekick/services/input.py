@@ -6,6 +6,9 @@ from typing import Optional
 
 import pyautogui  # We'll need to add this to dependencies
 
+# Type alias for key inputs
+KeyType = str  # pyautogui expects string keys only
+
 
 @dataclass
 class InputConfig:
@@ -14,14 +17,16 @@ class InputConfig:
     Args:
         min_delay_seconds: Minimum delay between actions
         cursor_speed: Movement speed multiplier (1.0 = normal speed)
+        key_press_duration: Default duration for key presses in seconds
     """
 
     min_delay_seconds: float = 0.05
     cursor_speed: float = 1.0
+    key_press_duration: float = 0.1
 
 
 class InputService:
-    """Service for interacting with game through mouse inputs.
+    """Service for interacting with game through mouse and keyboard inputs.
 
     This service provides explicit, low-level input operations with
     safety features like minimum delays between actions.
@@ -77,6 +82,43 @@ class InputService:
         """Release left mouse button."""
         self._enforce_delay()
         pyautogui.mouseUp(button="left")
+
+    def press_key(self, key: str) -> None:
+        """Press and hold a keyboard key.
+
+        Args:
+            key: Key to press (character or key name like 'enter', 'space', etc.)
+        """
+        self._enforce_delay()
+        pyautogui.keyDown(key)
+
+    def release_key(self, key: str) -> None:
+        """Release a keyboard key.
+
+        Args:
+            key: Key to release (character or key name like 'enter', 'space', etc.)
+        """
+        self._enforce_delay()
+        pyautogui.keyUp(key)
+
+    def type_string(self, text: str, interval: Optional[float] = None) -> None:
+        """Type a string of characters with optional interval between keystrokes.
+
+        Args:
+            text: String to type
+            interval: Optional delay between keystrokes (uses min_delay_seconds if None)
+        """
+        self._enforce_delay()
+        pyautogui.write(text, interval=interval or self.config.min_delay_seconds)
+
+    def tap_key(self, key: str) -> None:
+        """Tap a key (press and release).
+
+        Args:
+            key: Key to tap (character or key name like 'enter', 'space', etc.)
+        """
+        self._enforce_delay()
+        pyautogui.press(key)
 
     def _enforce_delay(self) -> None:
         """Enforce minimum delay between actions."""
