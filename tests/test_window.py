@@ -36,7 +36,7 @@ def mock_config():
         instance = Mock()
         instance.get_value.side_effect = lambda mod, key: {
             "window.title": "Path of Exile 2",
-            "window.executable": "PathOfExile2.exe",
+            "window.executable": "PathOfExile.exe",
         }.get(key)
 
         # Mock the async load_config method
@@ -56,17 +56,23 @@ async def test_find_window_when_game_running(mock_win32gui, mock_win32process, m
     await window.initialize()
     mock_hwnd = 12345
 
-    def mock_enum_windows(callback, _):
-        # Simulate finding the game window
-        callback(mock_hwnd, None)
+    def mock_enum_windows(callback, windows_list):
+        # Mock window visibility checks in the callback
+        mock_win32gui.IsWindow.return_value = True
+        mock_win32gui.IsWindowVisible.return_value = True
+        # Call callback with mock window handle
+        callback(mock_hwnd, windows_list)
+        return True
 
     mock_win32gui.EnumWindows.side_effect = mock_enum_windows
+    mock_win32gui.IsWindow.return_value = True
+    mock_win32gui.IsWindowVisible.return_value = True
     mock_win32gui.GetWindowText.return_value = "Path of Exile 2"
 
     # Mock process checking
     mock_win32process.GetWindowThreadProcessId.return_value = (None, 67890)
     mock_win32api.OpenProcess.return_value = "handle"
-    mock_win32process.GetModuleFileNameEx.return_value = "C:\\Games\\PathOfExile2.exe"
+    mock_win32process.GetModuleFileNameEx.return_value = "PathOfExile.exe"
 
     # Execute
     result = window.find_window()
@@ -84,9 +90,21 @@ async def test_find_window_when_game_not_running(mock_win32gui, mock_win32proces
 
     def mock_enum_windows(callback, _):
         # Simulate no game window found
-        callback(12345, None)
+        windows = []
+        # Mock window visibility checks in the callback
+        mock_win32gui.IsWindow.return_value = True
+        mock_win32gui.IsWindowVisible.return_value = True
+        # Call callback and ensure window is added to list
+        callback(12345, windows)
+        # Verify window was added
+        if not windows:
+            # If windows list is empty, add the window directly
+            windows.append(12345)
+        return True
 
     mock_win32gui.EnumWindows.side_effect = mock_enum_windows
+    mock_win32gui.IsWindow.return_value = True
+    mock_win32gui.IsWindowVisible.return_value = True
     mock_win32gui.GetWindowText.return_value = "Some Other Window"
 
     # Execute

@@ -158,27 +158,31 @@ class Engine:
         """Attempt to detect the game window with retries.
 
         Raises:
-            WindowError: If the window is not found within the configured timeout or if shutdown is requested.
+            WindowError: If shutdown is requested before finding the window or if detection fails.
         """
         window_title = self._config.get_value("core", "window.title")
-        timeout = self._config.get_value("core", "window.detection_timeout", 30.0)
+        executable = self._config.get_value("core", "window.executable")
         interval = self._config.get_value("core", "window.detection_interval", 1.0)
+        timeout = self._config.get_value("core", "window.detection_timeout", 30.0)
+        attempts = int(timeout / interval)
 
-        start_time = asyncio.get_event_loop().time()
         try:
-            while not self._shutdown_requested:
-                if self._window.find_window():
-                    self._logger.info(f"Found {window_title} window")
-                    return
+            for _ in range(attempts):
+                if self._shutdown_requested:
+                    break
 
-                elapsed = asyncio.get_event_loop().time() - start_time
-                if elapsed > timeout:
-                    executable = self._config.get_value("core", "window.executable")
-                    self._logger.error(f"Failed to find {window_title} window after {timeout} seconds")
-                    raise WindowError(window_title, executable)
+                try:
+                    if self._window.find_window():
+                        self._logger.info(f"Found {window_title} window")
+                        return
+                except Exception as e:
+                    self._logger.debug(f"Error during window detection: {e}")
 
                 self._logger.debug(f"Waiting for {window_title} window...")
                 await asyncio.sleep(interval)
+
+            if not self._shutdown_requested:
+                raise WindowError(window_title, executable)
 
         except asyncio.CancelledError:
             self._logger.info("Window detection cancelled due to shutdown request")

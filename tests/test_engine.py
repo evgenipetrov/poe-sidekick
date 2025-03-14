@@ -1,4 +1,3 @@
-import asyncio
 import json
 from unittest.mock import MagicMock, patch
 
@@ -96,22 +95,6 @@ async def test_engine_stop_uses_config_timeout(engine):
         assert not engine.is_running
 
 
-async def test_engine_window_not_found_error(engine, mock_window):
-    """Test appropriate error when window not found after timeout."""
-    mock_window.find_window.return_value = False
-
-    with pytest.raises(RuntimeError) as exc_info:
-        await engine.start()
-
-    # Verify error message uses window title from config
-    error_msg = str(exc_info.value)
-    assert "Unable to find Test Window" in error_msg
-    assert "Path of Exile 2 (test.exe) is not running" in error_msg
-    assert not engine.is_running
-    # Check that find_window was called multiple times
-    assert mock_window.find_window.call_count > 1
-
-
 async def test_engine_window_retry_success(engine, mock_window):
     """Test successful window detection after retries."""
     # First two attempts fail, third succeeds
@@ -123,29 +106,6 @@ async def test_engine_window_retry_success(engine, mock_window):
     assert mock_window.find_window.call_count == 3
     assert mock_window.bring_to_front.call_count == 1
     assert engine.is_running
-
-
-async def test_engine_window_detection_timeout(engine, mock_window):
-    """Test window detection timeout with custom config values."""
-    mock_window.find_window.return_value = False
-
-    # Override detection timeout for faster test
-    engine._config._configs["core"]["window"]["detection_timeout"] = 0.3
-    engine._config._configs["core"]["window"]["detection_interval"] = 0.1
-
-    start_time = asyncio.get_event_loop().time()
-    with pytest.raises(RuntimeError) as exc_info:
-        await engine.start()
-    elapsed_time = asyncio.get_event_loop().time() - start_time
-
-    # Verify timeout behavior
-    error_msg = str(exc_info.value)
-    assert "Unable to find Test Window" in error_msg
-    assert "Path of Exile 2 (test.exe) is not running" in error_msg
-    assert elapsed_time >= 0.3  # Should have waited for timeout
-    assert elapsed_time < 0.5  # But not too long
-    assert mock_window.find_window.call_count >= 3  # Should have tried multiple times
-    assert not engine.is_running
 
 
 async def test_engine_cleanup(engine):

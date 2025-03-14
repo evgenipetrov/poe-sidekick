@@ -5,7 +5,7 @@ This module provides functionality to detect and track the Path of Exile 2 game 
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Optional
 
 import win32api
 import win32con
@@ -54,11 +54,13 @@ class GameWindow:
 
             if process_handle:
                 # Get the process executable path
-                exe_path = win32process.GetModuleFileNameEx(process_handle, 0)
+                exe_path = str(win32process.GetModuleFileNameEx(process_handle, 0))
                 win32api.CloseHandle(process_handle)
 
                 # Check if the executable name matches
-                return os.path.basename(str(exe_path)) == self._exe_name
+                basename = os.path.basename(exe_path)
+                logging.debug(f"Comparing executable names: {basename} == {self._exe_name}")
+                return basename == self._exe_name
 
         except (win32gui.error, win32process.error, win32api.error, Exception) as e:
             logging.debug(f"Failed to check game process: {e}")
@@ -71,18 +73,47 @@ class GameWindow:
         Returns:
             bool: True if the window was found, False otherwise.
         """
+        if not self._title or not self._exe_name:
+            logging.debug("Window title or executable name not set")
+            return False
 
-        def callback(hwnd: int, _: Any) -> bool:
-            if not self._title or not self._exe_name:
-                return False
-            if win32gui.GetWindowText(hwnd) == self._title and self._is_game_process(hwnd):
-                self._hwnd = hwnd
-                return False  # Stop enumeration
-            return True
+        try:
+            # Get all top-level windows
+            def enum_windows_callback(hwnd: int, windows: list[int]) -> bool:
+                if win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):
+                    windows.append(hwnd)
+                return True
 
-        self._hwnd = None  # Reset handle before searching
-        win32gui.EnumWindows(callback, None)
-        return self._hwnd is not None
+            windows: list[int] = []
+            win32gui.EnumWindows(enum_windows_callback, windows)
+
+            # Check each window
+            logging.debug(f"Found {len(windows)} windows to check")
+            for hwnd in windows:
+                try:
+                    title = win32gui.GetWindowText(hwnd)
+                    logging.debug(f"Checking window: '{title}' against '{self._title}'")
+
+                    if title == self._title:
+                        logging.debug("Found matching window title, checking process...")
+                        process_match = self._is_game_process(hwnd)
+                        logging.debug(f"Process match result: {process_match}")
+                        if process_match:
+                            logging.debug("Found matching process")
+                            self._hwnd = hwnd
+                            return True
+                        else:
+                            logging.debug("Process did not match")
+                except Exception as e:
+                    logging.debug(f"Error checking window {hwnd}: {e}")
+                    continue
+
+            logging.debug("No matching window found")
+        except Exception as e:
+            logging.debug(f"Error during window search: {e}")
+            return False
+        else:
+            return False
 
     def is_window_available(self) -> bool:
         """Check if the game window is currently available.

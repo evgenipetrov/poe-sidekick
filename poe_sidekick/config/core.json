@@ -1,7 +1,7 @@
 {
     "window": {
         "title": "Path of Exile 2",
-        "executable": "PathOfExile2.exe",
+        "executable": "PathOfExile.exe",
         "capture_rate": 30,
         "detection_timeout": 30.0,
         "detection_interval": 1.0
