@@ -12,7 +12,9 @@
         }
     },
     "behavior": {
-        "auto_pickup": false,
+        "auto_pickup": true,
+        "pickup_radius": 50,
+        "min_delay_seconds": 0.05,
         "detection_threshold": 0.85
     }
 }

@@ -39,12 +39,14 @@ class LootModule(BaseModule):
         # Get required services
         self.vision_service = services["vision_service"]
         self.template_service = services["template_service"]
+        self.input_service = services["input_service"]
+        self.stream = services["stream"]  # Screenshot stream for region info
 
         # Store configuration sections
         self._filters = module_config["filters"]
         self._behavior = module_config["behavior"]
 
-        # Initialize state
+        # Initialize state and tracking
         self._detected_items: list[dict[str, Any]] = []
         self._ground_templates: dict[str, dict] = {}
         self._last_frame: Optional[np.ndarray] = None
@@ -99,7 +101,7 @@ class LootModule(BaseModule):
                 cv2.imwrite(str(screenshots_dir / f"template_{timestamp}.png"), template)
 
                 # Simple template matching on raw images
-                threshold = template_data["ground_label"]["detection_threshold"]
+                threshold = self._behavior["detection_threshold"]
                 self.logger.debug(f"Attempting template match for {item_name} with threshold {threshold}")
                 self.logger.debug(f"Template shape: {template.shape}, Frame shape: {frame.shape}")
 
@@ -135,6 +137,10 @@ class LootModule(BaseModule):
                         f"Detected item: {item_name} at {match.location} with confidence {match.confidence:.2f}"
                     )
 
+                    # Try to pick up item if auto-pickup is enabled
+                    if self._behavior["auto_pickup"]:
+                        await self._pickup_item(item_info)
+
             except Exception:
                 self.logger.exception(f"Error processing template {item_name}")
 
@@ -143,6 +149,47 @@ class LootModule(BaseModule):
             "frame_shape": frame.shape,
             "detected_items": self._detected_items,
         })
+
+    async def _pickup_item(self, item_info: dict) -> None:
+        """Attempt to pick up a detected item.
+
+        Args:
+            item_info: Dictionary containing item detection information
+        """
+        try:
+            # Get item location and convert to screen coordinates
+            frame_x, frame_y = item_info["location"]
+
+            # Get capture region from stream
+            region = self.stream._camera.region if self.stream._camera else None
+            if not region:
+                self.logger.error("No capture region available")
+                return
+
+            # Convert frame coordinates to screen coordinates
+            screen_x = frame_x + region[0]  # Add left offset
+            screen_y = frame_y + region[1]  # Add top offset
+
+            self.logger.debug(
+                f"Converting coordinates for {item_info['name']}: "
+                f"frame({frame_x}, {frame_y}) -> screen({screen_x}, {screen_y})"
+            )
+
+            # Add small random offset for natural clicks
+            offset_x = np.random.randint(-3, 4)
+            offset_y = np.random.randint(-3, 4)
+            click_x = screen_x + offset_x
+            click_y = screen_y + offset_y
+
+            # Move cursor and click
+            self.input_service.move_cursor_to(click_x, click_y)
+            time.sleep(self._behavior["min_delay_seconds"])
+            self.input_service.click_left()
+
+            self.logger.info(f"Attempted to pick up {item_info['name']} at ({click_x}, {click_y})")
+
+        except Exception:
+            self.logger.exception(f"Error attempting to pick up item: {item_info['name']}")
 
     async def _load_ground_templates(self) -> None:
         """Load ground label templates from metadata."""

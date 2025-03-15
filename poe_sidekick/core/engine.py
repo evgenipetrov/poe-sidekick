@@ -212,6 +212,7 @@ class Engine:
                 "vision_service": vision_service,
                 "input_service": input_service,
                 "template_service": template_service,
+                "stream": self._screenshot_stream,
             }
 
             # Initialize base modules
