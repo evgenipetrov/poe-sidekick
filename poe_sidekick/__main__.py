@@ -8,8 +8,6 @@ from typing import Any
 
 from poe_sidekick.core.engine import Engine, WindowError
 
-# Set up logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
