@@ -32,6 +32,13 @@ class MetadataError(TemplateError):
         super().__init__("Template metadata not loaded")
 
 
+class MetadataNotFoundError(TemplateError):
+    """Raised when metadata file cannot be found."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(f"Template metadata not found at {path}")
+
+
 class FileValidationError(TypeError):
     """Raised when a file has an invalid type."""
 
@@ -65,7 +72,7 @@ class TemplateService:
         self.config_service = config_service
         self._metadata: Optional[dict] = None
 
-    def load_metadata(self) -> dict[str, Any]:
+    async def load_metadata(self) -> dict[str, Any]:
         """Load and validate the template metadata.
 
         Returns:
@@ -78,16 +85,17 @@ class TemplateService:
         if self._metadata is not None:
             return self._metadata
 
-        metadata_path = Path("data/templates/metadata.json")
+        # Use project root path
+        project_root = Path(__file__).parent.parent.parent
+        metadata_path = project_root / "data" / "templates" / "metadata.json"
         if not metadata_path.exists():
-            raise FileNotFoundError()
+            raise MetadataNotFoundError(metadata_path)
 
-        with open(metadata_path) as f:
-            metadata = json.load(f)
-
-        self.validate_metadata(metadata)
+        metadata = await self.config_service.load_config("templates", str(metadata_path))
+        print(f"DEBUG - Raw metadata loaded: {json.dumps(metadata, indent=2)}")  # Temporary debug print
+        await self.validate_metadata(metadata)
         self._metadata = metadata
-        return cast(dict[str, Any], metadata)
+        return metadata
 
     def _validate_base_metadata(self, metadata: dict) -> None:
         """Validate the base metadata structure."""
@@ -113,7 +121,7 @@ class TemplateService:
         if "item_appearance" in template:
             self._validate_item_appearance(template["item_appearance"], name)
 
-    def validate_metadata(self, metadata: dict) -> None:
+    async def validate_metadata(self, metadata: dict) -> None:
         """Validate the template metadata structure.
 
         Args:
@@ -182,7 +190,7 @@ class TemplateService:
         if not isinstance(grid_size, list) or len(grid_size) != 2:
             raise RangeValidationError()
 
-    def get_template_config(self, name: str) -> dict[str, Any]:
+    async def get_template_config(self, name: str) -> dict[str, Any]:
         """Get configuration for a specific template.
 
         Args:

@@ -41,51 +41,42 @@ class VisionService:
         self._cache.clear()  # Invalidate cache on new frame
 
     async def find_template(
-        self, template: np.ndarray, threshold: float = 0.9, region: Optional[tuple[int, int, int, int]] = None
+        self, template: np.ndarray, search_frame: Optional[np.ndarray] = None, threshold: float = 0.9
     ) -> Optional[TemplateMatch]:
-        """Find template in current frame.
+        """Find template in frame using simple template matching.
 
         Args:
             template: numpy array of template image
+            search_frame: optional frame to search in, uses current frame if None
             threshold: minimum confidence threshold (0-1)
-            region: optional (x, y, w, h) region to search in
 
         Returns:
             TemplateMatch if found above threshold, else None
         """
-        if self._frame is None:
+        frame = search_frame if search_frame is not None else self._frame
+        if frame is None:
             return None
 
-        # Get search region
-        if region is not None:
-            x, y, w, h = region
-            search_area = self._frame[y : y + h, x : x + w]
-        else:
-            search_area = self._frame
-
-        # Template matching
-        result = cv2.matchTemplate(search_area, template, cv2.TM_CCOEFF_NORMED)
+        # Simple template matching
+        result = cv2.matchTemplate(frame, template, cv2.TM_CCOEFF_NORMED)
         min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
         if max_val < threshold:
             return None
 
-        # Convert coordinates and ensure tuple[int, int]
-        x = max_loc[0]
-        y = max_loc[1]
+        return TemplateMatch(location=max_loc, confidence=max_val)
 
-        if region is not None:
-            x += region[0]
-            y += region[1]
-
-        location: tuple[int, int] = (int(x), int(y))
-        return TemplateMatch(location=location, confidence=max_val)
-
-    async def get_text(self, region: tuple[int, int, int, int], preprocessing: Optional[dict] = None) -> Optional[str]:
+    async def get_text(
+        self,
+        region: tuple[int, int, int, int],
+        source_frame: Optional[np.ndarray] = None,
+        preprocessing: Optional[dict] = None,
+    ) -> Optional[str]:
         """Extract text from specified region using OCR.
 
         Args:
             region: (x, y, w, h) region to extract text from
+            source_frame: optional frame to extract text from, uses current frame if None
             preprocessing: optional dict of preprocessing parameters with keys:
                 - threshold: int (0-255) for binary threshold
                 - denoise: bool for denoising
@@ -94,11 +85,12 @@ class VisionService:
         Returns:
             Extracted text if successful, else None
         """
-        if self._frame is None:
+        frame = source_frame if source_frame is not None else self._frame
+        if frame is None:
             return None
 
         x, y, w, h = region
-        roi = self._frame[y : y + h, x : x + w]
+        roi = frame[y : y + h, x : x + w]
 
         # Apply preprocessing if specified
         if preprocessing:
@@ -125,8 +117,7 @@ class VisionService:
                 return None
             else:
                 return text
-        except Exception as e:
-            print(f"OCR error: {e}")
+        except Exception:
             return None
 
     async def detect_game_state(self, state_templates: dict[str, np.ndarray]) -> Optional[str]:

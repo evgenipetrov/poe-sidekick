@@ -99,7 +99,7 @@ class BaseModule(ABC):
             self.logger.exception(f"Failed to deactivate module {self.name}")
             raise
 
-    def process_frame(self, frame: np.ndarray) -> None:
+    async def process_frame(self, frame: np.ndarray) -> None:
         """Process a new screenshot frame.
 
         This method:
@@ -116,7 +116,7 @@ class BaseModule(ABC):
 
         try:
             self._frame_subject.on_next(frame)
-            self._process_frame(frame)
+            await self._process_frame(frame)
         except Exception:
             self.logger.exception(f"Error processing frame in module {self.name}")
 

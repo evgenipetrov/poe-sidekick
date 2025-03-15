@@ -18,11 +18,12 @@ class ConfigService:
         self._config_dir = os.path.normpath(config_dir)
         self._configs: dict[str, dict[str, Any]] = {}
 
-    async def load_config(self, name: str) -> dict[str, Any]:
+    async def load_config(self, name: str, custom_path: str | None = None) -> dict[str, Any]:
         """Load and cache a configuration file.
 
         Args:
             name: Name of the config file without .json extension (e.g. 'core')
+            custom_path: Optional full path to config file, overrides config_dir
 
         Returns:
             Dict containing the configuration values
@@ -32,7 +33,7 @@ class ConfigService:
             JSONDecodeError: If config file contains invalid JSON
         """
         if name not in self._configs:
-            path = os.path.join(self._config_dir, f"{name}.json")
+            path = custom_path if custom_path else os.path.join(self._config_dir, f"{name}.json")
             with open(path) as f:
                 self._configs[name] = json.load(f)
         return self._configs[name]

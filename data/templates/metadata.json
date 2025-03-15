@@ -1,64 +1,29 @@
 {
-    "version": "0.1.0",
+    "version": "1.0",
     "templates": {
         "currency": {
-            "divine_orb": {
-                "name": "Divine Orb",
-                "category": "currency",
-                "value_tier": 1,
+            "template_format": {
                 "ground_label": {
-                    "path": "ground_labels/currency/divine_orb.png",
+                    "path": "data/templates/currency/{name}/ground_label.png",
                     "color_range": {
-                        "hue": [30, 40],
-                        "saturation": [180, 255],
+                        "hue": [0, 180],
+                        "saturation": [0, 255],
                         "value": [200, 255]
                     },
+                    "detection_threshold": 0.7
+                }
+            },
+            "Exalted Orb": {
+                "name": "Exalted Orb",
+                "category": "currency",
+                "ground_label": {
+                    "path": "data/templates/currency/exalted_orb/ground_label.png",
+                    "color_range": {
+                        "hue": [25, 35],
+                        "saturation": [200, 255],
+                        "value": [220, 255]
+                    },
                     "detection_threshold": 0.85
-                },
-                "item_appearance": {
-                    "path": "item_appearances/currency/divine_orb.png",
-                    "detection_threshold": 0.9,
-                    "grid_size": [1, 1]
-                }
-            }
-        },
-        "unique": {
-            "template_format": {
-                "name": "Example Unique Item",
-                "category": "unique",
-                "ground_label": {
-                    "path": "ground_labels/unique/example.png",
-                    "color_range": {
-                        "hue": [20, 30],
-                        "saturation": [150, 255],
-                        "value": [150, 255]
-                    },
-                    "detection_threshold": 0.8
-                },
-                "item_appearance": {
-                    "path": "item_appearances/unique/example.png",
-                    "detection_threshold": 0.85,
-                    "grid_size": [2, 3]
-                }
-            }
-        },
-        "rare": {
-            "template_format": {
-                "name": "Example Rare Item",
-                "category": "rare",
-                "ground_label": {
-                    "path": "ground_labels/rare/example.png",
-                    "color_range": {
-                        "hue": [40, 60],
-                        "saturation": [180, 255],
-                        "value": [180, 255]
-                    },
-                    "detection_threshold": 0.8
-                },
-                "item_appearance": {
-                    "path": "item_appearances/rare/example.png",
-                    "detection_threshold": 0.85,
-                    "grid_size": [2, 3]
                 }
             }
         }

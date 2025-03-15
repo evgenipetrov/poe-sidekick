@@ -1,24 +1,24 @@
 {
     "activation": {
         "hotkey": "F4",
-        "enabled_by_default": false
+        "enabled_by_default": true
     },
     "filters": {
-        "min_item_value": 1.0,
-        "priority_items": ["Chaos Orb", "Divine Orb", "Exalted Orb"],
+        "min_item_value": 0.0,
+        "priority_items": ["Exalted Orb"],
         "item_classes": {
             "currency": true,
-            "unique": true,
+            "unique": false,
             "rare": {
-                "enabled": true,
-                "min_item_level": 75
+                "enabled": false,
+                "min_item_level": 0
             }
         }
     },
     "behavior": {
-        "auto_pickup_threshold": 5.0,
+        "auto_pickup": false,
         "scan_frequency": 0.5,
-        "pickup_radius": 50
+        "detection_threshold": 0.85
     },
     "ui": {
         "highlight_color": "#00ff00",

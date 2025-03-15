@@ -83,7 +83,7 @@ class ScreenshotStream:
             frame_time = (frame_start - self._last_frame_time) * 1000
             self._metrics["frame_times"].append(frame_time)
 
-            if frame_time > (self._frame_delay * 1000 * 1.1):  # 10% tolerance
+            if frame_time > (self._frame_delay * 1000 * 1.25):  # 25% tolerance
                 logging.warning(f"Frame time {frame_time:.2f}ms exceeds target {self._frame_delay * 1000:.2f}ms")
                 self._metrics["dropped_frames"] += 1
 
