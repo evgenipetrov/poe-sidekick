@@ -127,6 +127,7 @@ class LootModule(BaseModule):
 
                 # Simple template matching on raw images
                 threshold = self._behavior["detection_threshold"]
+                threshold = self._behavior["detection_threshold"]
                 self.logger.debug(f"Attempting template match for {item_name} with threshold {threshold}")
                 self.logger.debug(f"Template shape: {template_array.shape}, Frame shape: {frame.shape}")
 
@@ -161,6 +162,10 @@ class LootModule(BaseModule):
                     self.logger.info(
                         f"Detected item: {item_name} at {match.location} with confidence {match.confidence:.2f}"
                     )
+
+                    # Try to pick up item if auto-pickup is enabled
+                    if self._behavior["auto_pickup"]:
+                        await self._pickup_item(item_info)
 
                     # Try to pick up item if auto-pickup is enabled
                     if self._behavior["auto_pickup"]:
