@@ -119,7 +119,7 @@ branch = true
 source = ["poe_sidekick"]
 
 [tool.vulture]
-min_confidence = 80
+min_confidence = 60
 paths = ["poe_sidekick"]
 exclude = [
     "tests/",

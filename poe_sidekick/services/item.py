@@ -6,11 +6,31 @@ from typing import Any, TypedDict, cast
 
 from poe_sidekick.services.config import ConfigService
 
+
+class ItemMetadataError(Exception):
+    """Base exception for item metadata errors."""
+
+
+class MetadataNotFoundError(ItemMetadataError):
+    """Raised when item metadata file cannot be found."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(f"Item metadata file not found: {path}")
+
+
+class InvalidMetadataError(ItemMetadataError):
+    """Raised when item metadata file has invalid format."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(f"Invalid item metadata format in: {path}")
+
+
 class TemplateConfig(TypedDict):
     """Type definition for template configuration."""
 
     path: str
     detection_threshold: float
+
 
 class TemplateService:
     """Service for managing item templates."""
@@ -35,10 +55,10 @@ class TemplateService:
             ValueError: If metadata file is invalid
         """
         try:
-            with open(self._metadata_path, "r") as f:
+            with open(self._metadata_path) as f:
                 metadata = json.load(f)
             return cast(dict[str, Any], metadata)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Item metadata file not found: {self._metadata_path}")
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid item metadata format in: {self._metadata_path}")
+        except FileNotFoundError as err:
+            raise MetadataNotFoundError(self._metadata_path) from err
+        except json.JSONDecodeError as err:
+            raise InvalidMetadataError(self._metadata_path) from err
