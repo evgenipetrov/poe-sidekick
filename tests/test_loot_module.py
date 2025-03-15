@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from poe_sidekick.plugins.loot_manager import LootModule
-from poe_sidekick.services.template import TemplateService
+from poe_sidekick.services.item import TemplateService
 
 
 @pytest.fixture

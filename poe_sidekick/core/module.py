@@ -3,10 +3,12 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable, cast
 
 import numpy as np
-from rx.subject import Subject
+from numpy.typing import NDArray
+from rx.core.observable.observable import Observable
+from rx.subject.subject import Subject
 
 
 @dataclass
@@ -34,7 +36,7 @@ class BaseModule(ABC):
     5. Can emit frame analysis results
     """
 
-    def __init__(self, config: ModuleConfig, services: dict[str, Any]):
+    def __init__(self, config: ModuleConfig, services: dict[str, Any]) -> None:
         """Initialize a new module instance.
 
         Args:
@@ -47,7 +49,7 @@ class BaseModule(ABC):
         self.active = False
         self._state: dict[str, Any] = {}
         self.logger = logging.getLogger(f"module.{self.name}")
-        self._frame_subject = Subject()
+        self._frame_subject = Subject()  # Type inference through usage
 
     @property
     def state(self) -> dict[str, Any]:
@@ -99,7 +101,7 @@ class BaseModule(ABC):
             self.logger.exception(f"Failed to deactivate module {self.name}")
             raise
 
-    async def process_frame(self, frame: np.ndarray) -> None:
+    async def process_frame(self, frame: NDArray[np.uint8]) -> None:
         """Process a new screenshot frame.
 
         This method:
@@ -120,7 +122,7 @@ class BaseModule(ABC):
         except Exception:
             self.logger.exception(f"Error processing frame in module {self.name}")
 
-    def subscribe_to_frames(self, observer: Any) -> Any:
+    def subscribe_to_frames(self, observer: Callable[[NDArray[np.uint8]], Any]) -> Observable:
         """Subscribe to frame processing results.
 
         Args:
@@ -129,10 +131,10 @@ class BaseModule(ABC):
         Returns:
             Subscription object
         """
-        return self._frame_subject.subscribe(observer)
+        return cast(Observable, self._frame_subject.subscribe(observer))
 
     @abstractmethod
-    def _process_frame(self, frame: np.ndarray) -> None:
+    async def _process_frame(self, frame: NDArray[np.uint8]) -> None:
         """Process a screenshot frame.
 
         This method should be implemented by subclasses to define

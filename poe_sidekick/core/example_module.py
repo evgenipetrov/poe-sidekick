@@ -3,6 +3,7 @@
 from typing import Any, Optional
 
 import numpy as np
+from numpy.typing import NDArray
 
 from .module import BaseModule, ModuleConfig
 
@@ -16,7 +17,7 @@ class ExampleModule(BaseModule):
     3. A test harness for module system integration
     """
 
-    def __init__(self, services: dict[str, Any]):
+    def __init__(self, services: dict[str, Any]) -> None:
         """Initialize example module.
 
         Args:
@@ -25,9 +26,9 @@ class ExampleModule(BaseModule):
         config = ModuleConfig(name="example_module")
         super().__init__(config, services)
         self._frame_count = 0
-        self._last_frame: Optional[np.ndarray] = None
+        self._last_frame: Optional[NDArray[np.uint8]] = None
 
-    def _process_frame(self, frame: np.ndarray) -> None:
+    async def _process_frame(self, frame: NDArray[np.uint8]) -> None:
         """Process a screenshot frame.
 
         For example purposes, this just counts frames and stores the last one.
@@ -48,7 +49,10 @@ class ExampleModule(BaseModule):
         """Activation handler that resets frame counter."""
         self._frame_count = 0
         self._last_frame = None
-        self.update_state({"frame_count": self._frame_count, "last_frame_shape": None})
+        self.update_state({
+            "frame_count": self._frame_count,
+            "last_frame_shape": None,
+        })
         self.logger.info("Example module activated - frame counter reset")
 
     async def _on_deactivate(self) -> None:

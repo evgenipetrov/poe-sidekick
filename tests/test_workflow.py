@@ -1,6 +1,9 @@
 """Tests for the base workflow implementation."""
 
+from typing import Any
+
 import pytest
+from numpy.typing import NDArray
 
 from poe_sidekick.core.module import BaseModule, ModuleConfig
 from poe_sidekick.core.workflow import (
@@ -19,23 +22,23 @@ class MockModuleError(Exception):
 class MockActivationError(MockModuleError):
     """Raised when mock module activation fails."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Mock activation failed")
 
 
 class MockDeactivationError(MockModuleError):
     """Raised when mock module deactivation fails."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("Mock deactivation failed")
 
 
 class MockModule(BaseModule):
     """Mock module for testing workflows."""
 
-    def __init__(self, fail_activate=False, fail_deactivate=False):
+    def __init__(self, fail_activate: bool = False, fail_deactivate: bool = False) -> None:
         config = ModuleConfig(name="mock_module")
-        services = {}  # Empty services dict for testing
+        services: dict[str, Any] = {}  # Empty services dict for testing
         super().__init__(config=config, services=services)
         self.fail_activate = fail_activate
         self.fail_deactivate = fail_deactivate
@@ -55,7 +58,7 @@ class MockModule(BaseModule):
         if self.fail_deactivate:
             raise MockDeactivationError()
 
-    def _process_frame(self, frame):
+    async def _process_frame(self, frame: NDArray[Any]) -> None:
         """Mock implementation of abstract _process_frame."""
         self.process_frame_called = True
 
@@ -63,7 +66,7 @@ class MockModule(BaseModule):
 class TestWorkflow(BaseWorkflow):
     """Test workflow implementation."""
 
-    async def execute(self):
+    async def execute(self) -> None:
         await self.activate_modules()
         try:
             # Simple test workflow that just activates/deactivates modules
@@ -73,7 +76,7 @@ class TestWorkflow(BaseWorkflow):
 
 
 @pytest.mark.asyncio
-async def test_workflow_module_activation():
+async def test_workflow_module_activation() -> None:
     """Test successful module activation."""
     module1 = MockModule()
     module2 = MockModule()
@@ -89,7 +92,7 @@ async def test_workflow_module_activation():
 
 
 @pytest.mark.asyncio
-async def test_workflow_module_deactivation():
+async def test_workflow_module_deactivation() -> None:
     """Test successful module deactivation."""
     module1 = MockModule()
     module2 = MockModule()
@@ -106,7 +109,7 @@ async def test_workflow_module_deactivation():
 
 
 @pytest.mark.asyncio
-async def test_workflow_activation_failure():
+async def test_workflow_activation_failure() -> None:
     """Test handling of module activation failure."""
     module1 = MockModule()
     module2 = MockModule(fail_activate=True)
@@ -125,7 +128,7 @@ async def test_workflow_activation_failure():
 
 
 @pytest.mark.asyncio
-async def test_workflow_deactivation_failure():
+async def test_workflow_deactivation_failure() -> None:
     """Test handling of module deactivation failure."""
     module1 = MockModule()
     module2 = MockModule(fail_deactivate=True)
@@ -143,7 +146,7 @@ async def test_workflow_deactivation_failure():
 
 
 @pytest.mark.asyncio
-async def test_workflow_execute():
+async def test_workflow_execute() -> None:
     """Test workflow execution with proper cleanup."""
     module1 = MockModule()
     module2 = MockModule()
@@ -162,7 +165,7 @@ async def test_workflow_execute():
 
 
 @pytest.mark.asyncio
-async def test_base_workflow_execute_not_implemented():
+async def test_base_workflow_execute_not_implemented() -> None:
     """Test that base workflow execute() raises NotImplementedError."""
     workflow = BaseWorkflow([])
     with pytest.raises(NotImplementedError):
@@ -170,7 +173,7 @@ async def test_base_workflow_execute_not_implemented():
 
 
 @pytest.mark.asyncio
-async def test_workflow_skip_already_active_modules():
+async def test_workflow_skip_already_active_modules() -> None:
     """Test that workflow skips activation of already active modules."""
     module1 = MockModule()
     module2 = MockModule()

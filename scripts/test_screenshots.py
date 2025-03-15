@@ -9,7 +9,11 @@ from poe_sidekick.core.window import GameWindow
 from poe_sidekick.services.config import ConfigService
 
 
-async def main():
+async def main() -> None:
+    """Run screenshot capture test.
+
+    Tests window detection, screenshot capture, and debug file saving.
+    """
     # Configure logging to see debug messages
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -69,4 +73,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    # asyncio.run lacks type annotations in some Python versions
     asyncio.run(main())

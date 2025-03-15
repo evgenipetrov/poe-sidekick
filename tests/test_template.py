@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
-from poe_sidekick.services.template import (
+from poe_sidekick.services.item import (
     FileValidationError,
     MetadataError,
     RangeValidationError,

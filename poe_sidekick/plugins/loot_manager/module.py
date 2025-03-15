@@ -3,12 +3,36 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, TypedDict
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 from ...core.module import BaseModule, ModuleConfig
+
+
+class ItemInfo(TypedDict):
+    """Type definition for item detection information."""
+
+    name: str
+    location: tuple[int, int]
+    confidence: float
+    timestamp: float
+
+
+class GroundLabelConfig(TypedDict):
+    """Type definition for ground label configuration."""
+
+    path: str
+    color_range: dict[str, list[int]]
+    detection_threshold: float
+
+
+class TemplateData(TypedDict):
+    """Type definition for template data."""
+
+    ground_label: GroundLabelConfig
 
 
 class LootModule(BaseModule):
@@ -38,7 +62,7 @@ class LootModule(BaseModule):
 
         # Get required services
         self.vision_service = services["vision_service"]
-        self.template_service = services["template_service"]
+        self.item_service = services["item_service"]
         self.input_service = services["input_service"]
         self.stream = services["stream"]  # Screenshot stream for region info
 
@@ -47,12 +71,12 @@ class LootModule(BaseModule):
         self._behavior = module_config["behavior"]
 
         # Initialize state and tracking
-        self._detected_items: list[dict[str, Any]] = []
-        self._ground_templates: dict[str, dict] = {}
-        self._last_frame: Optional[np.ndarray] = None
+        self._detected_items: list[ItemInfo] = []
+        self._ground_templates: dict[str, TemplateData] = {}
+        self._last_frame: Optional[NDArray[np.uint8]] = None
         self.update_state({"frame_shape": None, "detected_items": self._detected_items})
 
-    async def _process_frame(self, frame: np.ndarray) -> None:
+    async def _process_frame(self, frame: NDArray[np.uint8]) -> None:
         """Process a screenshot frame to detect and filter items.
 
         Args:
@@ -89,7 +113,8 @@ class LootModule(BaseModule):
                     self.logger.warning(f"Failed to load template: {template_path}")
                     continue
 
-                self.logger.debug(f"Successfully loaded template: {template_path} with shape {template.shape}")
+                template_array = np.asarray(template, dtype=np.uint8)
+                self.logger.debug(f"Successfully loaded template: {template_path} with shape {template_array.shape}")
 
                 # Save debug images if needed
                 screenshots_dir = Path("data/screenshots")
@@ -98,19 +123,19 @@ class LootModule(BaseModule):
 
                 # Save original frame and template
                 cv2.imwrite(str(screenshots_dir / f"frame_{timestamp}.png"), frame)
-                cv2.imwrite(str(screenshots_dir / f"template_{timestamp}.png"), template)
+                cv2.imwrite(str(screenshots_dir / f"template_{timestamp}.png"), template_array)
 
                 # Simple template matching on raw images
                 threshold = self._behavior["detection_threshold"]
                 self.logger.debug(f"Attempting template match for {item_name} with threshold {threshold}")
-                self.logger.debug(f"Template shape: {template.shape}, Frame shape: {frame.shape}")
+                self.logger.debug(f"Template shape: {template_array.shape}, Frame shape: {frame.shape}")
 
-                match = await self.vision_service.find_template(template, frame, threshold=threshold)
+                match = await self.vision_service.find_template(template_array, frame, threshold=threshold)
 
                 if match:
                     # Draw match location on frame for debugging
                     debug_frame = frame.copy()
-                    h, w = template.shape[:2]
+                    h, w = template_array.shape[:2]
                     x, y = match.location
                     cv2.rectangle(debug_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     cv2.circle(debug_frame, match.location, 5, (0, 0, 255), -1)
@@ -126,7 +151,7 @@ class LootModule(BaseModule):
                     cv2.imwrite(str(screenshots_dir / f"match_{timestamp}.png"), debug_frame)
 
                     # Add detected item
-                    item_info = {
+                    item_info: ItemInfo = {
                         "name": item_name,
                         "location": match.location,
                         "confidence": match.confidence,
@@ -150,7 +175,7 @@ class LootModule(BaseModule):
             "detected_items": self._detected_items,
         })
 
-    async def _pickup_item(self, item_info: dict) -> None:
+    async def _pickup_item(self, item_info: ItemInfo) -> None:
         """Attempt to pick up a detected item.
 
         Args:
@@ -194,7 +219,7 @@ class LootModule(BaseModule):
     async def _load_ground_templates(self) -> None:
         """Load ground label templates from metadata."""
         try:
-            metadata = await self.template_service.load_metadata()
+            metadata = await self.item_service.load_metadata()
             self.logger.debug(f"Loaded metadata: {metadata}")
             self._ground_templates = {}
 

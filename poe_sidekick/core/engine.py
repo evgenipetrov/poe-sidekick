@@ -7,44 +7,78 @@ including window management, screenshot stream, modules, and workflows.
 import argparse
 import asyncio
 import logging
-from typing import Any, Optional, Protocol
+from typing import TYPE_CHECKING, Any, NoReturn, Optional, Protocol, TypedDict, cast
 
 from poe_sidekick.core.stream import ScreenshotStream
 from poe_sidekick.core.window import GameWindow
 from poe_sidekick.plugins.loot_manager.module import LootModule
 from poe_sidekick.services.config import ConfigService
 from poe_sidekick.services.input import InputConfig, InputService
-from poe_sidekick.services.template import TemplateService
+from poe_sidekick.services.item import TemplateService
 from poe_sidekick.services.vision import VisionService
 
+if TYPE_CHECKING:
+    from poe_sidekick.workflows.loot import LootWorkflow
 
-def raise_window_region_error() -> None:
+
+class Module(Protocol):
+    """Protocol defining required module interface."""
+
+    async def cleanup(self) -> None: ...
+    async def process_frame(self, frame: Any) -> None: ...
+
+
+class WorkflowConfig(TypedDict):
+    """Type definition for workflow configuration."""
+
+    modules: list[str]
+
+
+class FrameProcessor(Protocol):
+    """Protocol defining frame processing interface."""
+
+    async def __call__(self, frame: Any) -> None: ...
+
+
+def raise_window_region_error() -> NoReturn:
     """Raise WindowRegionError."""
     raise WindowRegionError()
 
 
-def raise_workflow_config_error(workflow_name: str) -> None:
+def raise_workflow_config_error(workflow_name: str) -> NoReturn:
     """Raise WorkflowConfigError."""
     raise WorkflowConfigError(workflow_name)
 
 
-def raise_required_module_error(module_name: str) -> None:
+def raise_required_module_error(module_name: str) -> NoReturn:
     """Raise RequiredModuleError."""
     raise RequiredModuleError(module_name)
 
 
-def raise_unknown_workflow_error(workflow_name: str) -> None:
+def raise_unknown_workflow_error(workflow_name: str) -> NoReturn:
     """Raise UnknownWorkflowError."""
     raise UnknownWorkflowError(workflow_name)
 
 
-def raise_workflow_import_error(workflow_name: str, error: str) -> None:
+def raise_workflow_import_error(workflow_name: str, error: str) -> NoReturn:
     """Raise WorkflowImportError."""
     raise WorkflowImportError(workflow_name, error)
 
 
+def raise_stream_initialization_error() -> NoReturn:
+    """Raise StreamInitializationError."""
+    raise StreamInitializationError()
+
+
 class EngineError(RuntimeError):
     """Base exception class for engine-related errors."""
+
+
+class StreamInitializationError(EngineError):
+    """Exception raised when screenshot stream initialization fails."""
+
+    def __init__(self) -> None:
+        super().__init__("Screenshot stream initialization failed")
 
 
 class WindowError(EngineError):
@@ -112,10 +146,6 @@ class WorkflowImportError(EngineError):
         super().__init__(f"Failed to import workflow {workflow_name}: {error}")
 
 
-class Module(Protocol):
-    async def cleanup(self) -> None: ...
-
-
 class Engine:
     """Central engine class managing POE Sidekick's core functionality."""
 
@@ -123,12 +153,13 @@ class Engine:
         """Initialize the Engine instance."""
         self._config = ConfigService()
         self._window = GameWindow()
-        self._screenshot_stream = None  # Will be initialized later
-        self._modules: dict[str, Module] = {}  # Will hold active modules
+        self._screenshot_stream: Optional[ScreenshotStream] = None
+        self._modules: dict[str, Module] = {}
         self._running: bool = False
         self._shutdown_requested: bool = False
         self._logger = logging.getLogger(__name__)
-        self._workflow: Optional[Any] = None
+        self._workflow: Optional[Any] = None  # Type will be refined when workflow system is typed
+        self._frame_tasks: list[asyncio.Task[None]] = []
 
         # Parse command line arguments
         parser = argparse.ArgumentParser()
@@ -174,6 +205,11 @@ class Engine:
         self._shutdown_requested = True
         self._running = False
 
+        # Cancel any pending frame tasks
+        for task in self._frame_tasks:
+            if not task.done():
+                task.cancel()
+
         # Get timeout from config or use default
         timeout = self._config.get_value("core", "engine.shutdown_timeout", 5.0)
         await self._cleanup_components(timeout)
@@ -185,15 +221,20 @@ class Engine:
             # Initialize screenshot stream
             self._screenshot_stream = ScreenshotStream(self._config)
             window_rect = self._window.get_window_rect()
-            if window_rect:
-                self._logger.info(f"Starting screenshot stream with window region: {window_rect}")
-                await self._screenshot_stream.start(region=window_rect)
-            else:
+            if not window_rect:
                 self._logger.error("Failed to get window region")
                 raise_window_region_error()
+                return
+
+            self._logger.info(f"Starting screenshot stream with window region: {window_rect}")
+            await self._screenshot_stream.start(region=window_rect)
 
             # Initialize core services
+            if not self._screenshot_stream:
+                raise_stream_initialization_error()
+
             vision_service = VisionService(self._screenshot_stream)
+            template_service = TemplateService(self._config)
 
             # Load input config
             input_config = self._config.get_value("core", "input")
@@ -205,10 +246,8 @@ class Engine:
                 )
             )
 
-            template_service = TemplateService(self._config)
-
             # Create service dictionary
-            services = {
+            services: dict[str, Any] = {
                 "vision_service": vision_service,
                 "input_service": input_service,
                 "template_service": template_service,
@@ -219,10 +258,17 @@ class Engine:
             self._modules["loot_module"] = LootModule(services)
 
             # Subscribe modules to screenshot stream
-            async def process_frame(frame):
-                await self._modules["loot_module"].process_frame(frame)
+            async def process_frame(frame: Any) -> None:
+                if "loot_module" in self._modules:
+                    await self._modules["loot_module"].process_frame(frame)
 
-            self._screenshot_stream.observable.subscribe(lambda frame: asyncio.create_task(process_frame(frame)))
+            # Convert the async function to a sync callback and store task references
+            def frame_callback(frame: Any) -> None:
+                task = asyncio.create_task(process_frame(frame))
+                self._frame_tasks.append(task)
+                task.add_done_callback(self._frame_tasks.remove)
+
+            self._screenshot_stream.observable.subscribe(frame_callback)
 
             # Start workflow if specified
             if self._workflow_name:
@@ -236,7 +282,7 @@ class Engine:
     async def _cleanup_components(self, timeout: float) -> None:
         """Cleanup all components properly."""
         try:
-            cleanup_tasks = []
+            cleanup_tasks: list[asyncio.Task[None]] = []
 
             # Clean up workflow if running
             if self._workflow is not None:
@@ -251,7 +297,8 @@ class Engine:
                 cleanup_tasks.append(asyncio.create_task(self._screenshot_stream.stop()))
 
             # Wait for all cleanup tasks with timeout
-            await asyncio.wait_for(asyncio.gather(*cleanup_tasks), timeout=timeout)
+            if cleanup_tasks:  # Only wait if there are tasks
+                await asyncio.wait_for(asyncio.gather(*cleanup_tasks), timeout=timeout)
 
         except asyncio.TimeoutError:
             self._logger.warning(f"Component cleanup timed out after {timeout} seconds")
@@ -314,17 +361,20 @@ class Engine:
         """
         return self._window
 
-    def _validate_workflow_config(self, workflow_name: str, workflow_config: Optional[dict]) -> None:
+    def _validate_workflow_config(self, workflow_name: str, workflow_config: Optional[WorkflowConfig]) -> None:
         """Validate workflow configuration.
 
         Args:
             workflow_name: Name of the workflow
             workflow_config: Workflow configuration dictionary
+
+        Raises:
+            WorkflowConfigError: If workflow configuration is missing or invalid
         """
         if not workflow_config:
             raise_workflow_config_error(workflow_name)
 
-    def _validate_required_modules(self, workflow_config: dict) -> list[Module]:
+    def _validate_required_modules(self, workflow_config: WorkflowConfig) -> list[Module]:
         """Validate and collect required modules.
 
         Args:
@@ -332,6 +382,9 @@ class Engine:
 
         Returns:
             List of required modules
+
+        Raises:
+            RequiredModuleError: If a required module is not found
         """
         workflow_modules = []
         for module_name in workflow_config["modules"]:
@@ -340,7 +393,7 @@ class Engine:
             workflow_modules.append(self._modules[module_name])
         return workflow_modules
 
-    def _get_workflow_class(self, workflow_name: str) -> type[Any]:
+    def _get_workflow_class(self, workflow_name: str) -> type["LootWorkflow"]:
         """Get workflow class based on workflow name.
 
         Args:
@@ -348,13 +401,17 @@ class Engine:
 
         Returns:
             Workflow class
+
+        Raises:
+            UnknownWorkflowError: If workflow type is not recognized
+            WorkflowImportError: If workflow module import fails
         """
         try:
             from poe_sidekick.workflows import LootWorkflow
 
             if workflow_name == "loot":
                 return LootWorkflow
-            raise_unknown_workflow_error(workflow_name)
+            raise_unknown_workflow_error(workflow_name)  # NoReturn, so no need for else
         except ImportError as e:
             raise_workflow_import_error(workflow_name, str(e))
 
@@ -367,14 +424,17 @@ class Engine:
         try:
             # Load and validate workflow configuration
             workflow_config = self._config.get_value("workflows", workflow_name)
-            self._validate_workflow_config(workflow_name, workflow_config)
+            if not workflow_config:
+                raise_workflow_config_error(workflow_name)
 
             # Get required modules
             workflow_modules = self._validate_required_modules(workflow_config)
 
             # Get workflow class and create instance
             workflow_class = self._get_workflow_class(workflow_name)
-            self._workflow = workflow_class(*workflow_modules)
+            # Cast first module to LootModule since we know it's the only required module
+            loot_module = cast(LootModule, workflow_modules[0])
+            self._workflow = workflow_class(loot_module)
 
             # Start workflow
             self._logger.info(f"Starting workflow: {workflow_name}")

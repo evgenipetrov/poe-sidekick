@@ -29,6 +29,8 @@ deptry = "*"
 mypy = "*"
 pre-commit = "*"
 tox = "*"
+vulture = "*"
+pyupgrade = "^3.19.1"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
@@ -115,3 +117,14 @@ skip_empty = true
 [tool.coverage.run]
 branch = true
 source = ["poe_sidekick"]
+
+[tool.vulture]
+min_confidence = 80
+paths = ["poe_sidekick"]
+exclude = [
+    "tests/",
+    "*/__pycache__/*",
+    "*.pyc"
+]
+make_whitelist = false
+sort_by_size = true

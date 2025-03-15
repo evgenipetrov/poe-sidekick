@@ -5,12 +5,15 @@ import logging
 import time
 from collections import deque
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
-import dxcam  # type: ignore[import-untyped]
+# dxcam has no type stubs, but we need it for screen capture
+import dxcam
+import numpy as np
 import psutil
+from numpy.typing import NDArray
 from rx.core.observable.observable import Observable
-from rx.subject import Subject
+from rx.subject.subject import Subject
 
 from poe_sidekick.core.types import DXCamera, StreamConfig, StreamMetrics
 from poe_sidekick.services.config import ConfigService
@@ -36,9 +39,9 @@ class ScreenshotStream:
         """
         self._config_service = config_service
         self._camera: Optional[DXCamera] = None
-        self._subject = Subject()
+        self._subject = Subject()  # Type inference through usage
         self._running = False
-        self._capture_task: Optional[asyncio.Task] = None
+        self._capture_task: Optional[asyncio.Task[None]] = None
 
         # Load config
         self._load_config()
@@ -95,20 +98,18 @@ class ScreenshotStream:
         if memory_mb > self._max_memory:
             logging.warning(f"Memory usage {memory_mb:.2f}MB exceeds limit {self._max_memory}MB")
 
-    def _save_debug_frame(self, frame: bytes | None) -> None:
+    def _save_debug_frame(self, frame: NDArray[np.uint8]) -> None:
         """Save frame for debugging if interval is reached."""
         if self._frame_count % self._debug_interval == 0:
             logging.debug(f"Attempting to save debug frame {self._frame_count}")
             try:
                 import cv2
-                import numpy as np
 
-                frame_array = np.asarray(frame)
-                if frame_array.size == 0:
+                if frame.size == 0:
                     logging.error("Frame is empty, skipping save")
                     return
                 debug_path = self._debug_dir / f"frame_{self._frame_count}.png"
-                success = cv2.imwrite(str(debug_path), frame_array)
+                success = cv2.imwrite(str(debug_path), frame)
                 if success:
                     logging.debug(f"Successfully saved debug frame to {debug_path}")
                 else:
@@ -116,7 +117,7 @@ class ScreenshotStream:
             except Exception as e:
                 logging.error(f"Failed to save debug frame: {e}", exc_info=True)
 
-    def _process_frame(self, frame: bytes | None, frame_start: float) -> None:
+    def _process_frame(self, frame: NDArray[np.uint8], frame_start: float) -> None:
         """Process captured frame and update metrics."""
         self._update_memory_metrics()
 
@@ -141,7 +142,8 @@ class ScreenshotStream:
             if self._camera:
                 frame = self._camera.grab()
                 if frame is not None:
-                    self._process_frame(frame, frame_start)
+                    frame_array = np.asarray(frame, dtype=np.uint8)
+                    self._process_frame(frame_array, frame_start)
                 else:
                     logging.warning("Failed to capture frame")
                     self._metrics["dropped_frames"] += 1
@@ -198,7 +200,7 @@ class ScreenshotStream:
     @property
     def observable(self) -> Observable:
         """Access the RxPY observable for subscribing to screenshots."""
-        return self._subject
+        return cast(Observable, self._subject)
 
     @property
     def metrics(self) -> StreamMetrics:
