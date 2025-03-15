@@ -1,15 +1,14 @@
 """Type definitions for external dependencies."""
 
-from collections import deque
-from typing import Optional, Protocol, TypedDict
+from typing import Protocol, TypedDict
 
 
 class StreamMetrics(TypedDict):
     """Type for screenshot stream metrics."""
 
-    frame_times: deque[float]  # Frame capture times in ms
-    memory_usage: deque[float]  # Memory usage in MB
-    processing_delays: deque[float]  # Processing delays in ms
+    # frame_times: deque[float]  # Frame capture times in ms
+    # memory_usage: deque[float]  # Memory usage in MB
+    # processing_delays: deque[float]  # Processing delays in ms
     dropped_frames: int
 
 
@@ -24,7 +23,7 @@ class DXCamera(Protocol):
     """Type protocol for dxcam.DXCamera."""
 
     @property
-    def region(self) -> Optional[tuple[int, int, int, int]]:
+    def region(self) -> tuple[int, int, int, int] | None:
         """Get capture region."""
         ...
 
@@ -33,6 +32,6 @@ class DXCamera(Protocol):
         """Set capture region."""
         ...
 
-    def grab(self) -> Optional[bytes]:
+    def grab(self) -> bytes | None:
         """Capture a single frame."""
         ...

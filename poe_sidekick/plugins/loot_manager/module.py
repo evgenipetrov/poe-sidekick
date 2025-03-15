@@ -3,7 +3,7 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Optional, TypedDict
+from typing import Any, TypedDict
 
 import cv2
 import numpy as np
@@ -73,7 +73,7 @@ class LootModule(BaseModule):
         # Initialize state and tracking
         self._detected_items: list[ItemInfo] = []
         self._ground_templates: dict[str, TemplateData] = {}
-        self._last_frame: Optional[NDArray[np.uint8]] = None
+        self._last_frame: NDArray[np.uint8] | None = None
         self.update_state({"frame_shape": None, "detected_items": self._detected_items})
 
     async def _process_frame(self, frame: NDArray[np.uint8]) -> None:
@@ -82,7 +82,7 @@ class LootModule(BaseModule):
         Args:
             frame: Screenshot frame as numpy array
         """
-        self.logger.debug(f"Processing frame with shape: {frame.shape if frame is not None else 'None'}")
+        self.logger.debug(f"Processing frame with shape: {frame.shape if frame is not None else "None"}")
 
         if frame is None:
             return
@@ -201,7 +201,7 @@ class LootModule(BaseModule):
             screen_y = frame_y + region[1]  # Add top offset
 
             self.logger.debug(
-                f"Converting coordinates for {item_info['name']}: "
+                f"Converting coordinates for {item_info["name"]}: "
                 f"frame({frame_x}, {frame_y}) -> screen({screen_x}, {screen_y})"
             )
 
@@ -216,10 +216,10 @@ class LootModule(BaseModule):
             time.sleep(self._behavior["min_delay_seconds"])
             self.input_service.click_left()
 
-            self.logger.info(f"Attempted to pick up {item_info['name']} at ({click_x}, {click_y})")
+            self.logger.info(f"Attempted to pick up {item_info["name"]} at ({click_x}, {click_y})")
 
         except Exception:
-            self.logger.exception(f"Error attempting to pick up item: {item_info['name']}")
+            self.logger.exception(f"Error attempting to pick up item: {item_info["name"]}")
 
     async def _load_ground_templates(self) -> None:
         """Load ground label templates from metadata."""

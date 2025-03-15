@@ -7,7 +7,7 @@ This service provides functionality for:
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import cv2
 import numpy as np
@@ -32,7 +32,7 @@ class VisionService:
 
     def __init__(self, stream: ScreenshotStream) -> None:
         self._stream = stream
-        self._frame: Optional[NDArray[np.uint8]] = None
+        self._frame: NDArray[np.uint8] | None = None
         self._cache: dict[str, TemplateMatch] = {}
 
         # Subscribe to screenshot stream
@@ -46,9 +46,9 @@ class VisionService:
     async def find_template(
         self,
         template: NDArray[np.uint8],
-        search_frame: Optional[NDArray[np.uint8]] = None,
+        search_frame: NDArray[np.uint8] | None = None,
         threshold: float = 0.9,
-    ) -> Optional[TemplateMatch]:
+    ) -> TemplateMatch | None:
         """Find template in frame using simple template matching.
 
         Args:
@@ -78,9 +78,9 @@ class VisionService:
     async def get_text(
         self,
         region: tuple[int, int, int, int],
-        source_frame: Optional[NDArray[np.uint8]] = None,
-        preprocessing: Optional[dict[str, Any]] = None,
-    ) -> Optional[str]:
+        source_frame: NDArray[np.uint8] | None = None,
+        preprocessing: dict[str, Any] | None = None,
+    ) -> str | None:
         """Extract text from specified region using OCR.
 
         Args:
@@ -133,7 +133,7 @@ class VisionService:
         except Exception:
             return None
 
-    async def detect_game_state(self, state_templates: dict[str, NDArray[np.uint8]]) -> Optional[str]:
+    async def detect_game_state(self, state_templates: dict[str, NDArray[np.uint8]]) -> str | None:
         """Detect current game state using template matching.
 
         Args:

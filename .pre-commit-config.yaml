@@ -14,7 +14,6 @@ repos:
     hooks:
       - id: ruff
         args: [--exit-non-zero-on-fix]
-        exclude: ^tests/
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-prettier
@@ -26,14 +25,11 @@ repos:
     rev: "v2.10"
     hooks:
       - id: vulture
-        exclude: ^tests/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: "v1.9.0"
     hooks:
       - id: mypy
-        args: ["--strict", "--ignore-missing-imports"]
-        exclude: ^tests/
         additional_dependencies:
           - "mypy-extensions>=1.0.0"
           - "typing-extensions>=4.1.0"
@@ -50,3 +46,19 @@ repos:
     hooks:
       - id: pyupgrade
         args: [--py38-plus]
+
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        args:
+          [
+            "tests/",
+            "--cov=poe_sidekick",
+            "--cov-fail-under=90",
+            "--cov-report=term-missing",
+          ]

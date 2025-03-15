@@ -2,7 +2,6 @@
 
 import time
 from dataclasses import dataclass
-from typing import Optional
 
 import pyautogui  # We'll need to add this to dependencies
 
@@ -35,7 +34,7 @@ class InputService:
         config: Optional configuration for input behaviors
     """
 
-    def __init__(self, config: Optional[InputConfig] = None):
+    def __init__(self, config: InputConfig | None = None):
         self.config = config or InputConfig()
         self._last_action_time: float = 0
 
@@ -101,7 +100,7 @@ class InputService:
         self._enforce_delay()
         pyautogui.keyUp(key)
 
-    def type_string(self, text: str, interval: Optional[float] = None) -> None:
+    def type_string(self, text: str, interval: float | None = None) -> None:
         """Type a string of characters with optional interval between keystrokes.
 
         Args:

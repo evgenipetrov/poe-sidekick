@@ -5,7 +5,6 @@ This module provides functionality to detect and track the Path of Exile 2 game 
 
 import logging
 import os
-from typing import Optional
 
 import win32api
 import win32con
@@ -20,10 +19,10 @@ class GameWindow:
 
     def __init__(self) -> None:
         """Initialize the GameWindow instance."""
-        self._hwnd: Optional[int] = None
+        self._hwnd: int | None = None
         self._config = ConfigService()
-        self._title: Optional[str] = None
-        self._exe_name: Optional[str] = None
+        self._title: str | None = None
+        self._exe_name: str | None = None
 
     async def initialize(self) -> None:
         """Initialize window properties from config.
@@ -133,7 +132,7 @@ class GameWindow:
             return False
         return self._hwnd == win32gui.GetForegroundWindow()
 
-    def get_window_rect(self) -> Optional[tuple[int, int, int, int]]:
+    def get_window_rect(self) -> tuple[int, int, int, int] | None:
         """Get the game window rectangle coordinates.
 
         Returns:
@@ -148,7 +147,7 @@ class GameWindow:
             self._hwnd = None
             return None
 
-    def get_window_size(self) -> Optional[tuple[int, int]]:
+    def get_window_size(self) -> tuple[int, int] | None:
         """Get the game window size.
 
         Returns:

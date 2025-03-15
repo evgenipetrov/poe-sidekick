@@ -5,7 +5,7 @@ import logging
 import time
 from collections import deque
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 # dxcam has no type stubs, but we need it for screen capture
 import dxcam
@@ -38,10 +38,10 @@ class ScreenshotStream:
             config_service: Service for accessing configuration values
         """
         self._config_service = config_service
-        self._camera: Optional[DXCamera] = None
+        self._camera: DXCamera | None = None
         self._subject = Subject()  # Type inference through usage
         self._running = False
-        self._capture_task: Optional[asyncio.Task[None]] = None
+        self._capture_task: asyncio.Task[None] | None = None
 
         # Load config
         self._load_config()
@@ -151,7 +151,7 @@ class ScreenshotStream:
             self._last_frame_time = frame_start
             await asyncio.sleep(self._frame_delay)
 
-    async def start(self, region: Optional[tuple[int, int, int, int]] = None) -> None:
+    async def start(self, region: tuple[int, int, int, int] | None = None) -> None:
         """Start capturing and streaming screenshots.
 
         Args:
@@ -194,7 +194,7 @@ class ScreenshotStream:
                     f"  Average frame time: {avg_frame_time:.2f}ms\n"
                     f"  Average memory usage: {avg_memory:.2f}MB\n"
                     f"  Average processing time: {avg_processing:.2f}ms\n"
-                    f"  Dropped frames: {self._metrics['dropped_frames']}"
+                    f"  Dropped frames: {self._metrics["dropped_frames"]}"
                 )
 
     @property

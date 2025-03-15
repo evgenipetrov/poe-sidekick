@@ -32,6 +32,38 @@ class TemplateConfig(TypedDict):
     detection_threshold: float
 
 
+class ItemService:
+    """Service for managing item metadata and state."""
+
+    def __init__(self, config_service: ConfigService) -> None:
+        """Initialize service with configuration.
+
+        Args:
+            config_service: Service for accessing configuration values
+        """
+        self._config = config_service
+        self._metadata_path = Path(__file__).parent.parent.parent / "data" / "items" / "metadata.json"
+
+    async def load_metadata(self) -> dict[str, Any]:
+        """Load item metadata from file.
+
+        Returns:
+            Item metadata dictionary containing templates and configurations
+
+        Raises:
+            MetadataNotFoundError: If metadata file is not found
+            InvalidMetadataError: If metadata file has invalid format
+        """
+        try:
+            with open(self._metadata_path) as f:
+                metadata = json.load(f)
+            return cast(dict[str, Any], metadata)
+        except FileNotFoundError as err:
+            raise MetadataNotFoundError(self._metadata_path) from err
+        except json.JSONDecodeError as err:
+            raise InvalidMetadataError(self._metadata_path) from err
+
+
 class TemplateService:
     """Service for managing item templates."""
 
@@ -42,7 +74,7 @@ class TemplateService:
             config_service: Service for accessing configuration values
         """
         self._config = config_service
-        self._metadata_path = Path(__file__).parent.parent / "data" / "item_metadata.json"
+        self._metadata_path = Path(__file__).parent.parent.parent / "data" / "items" / "metadata.json"
 
     async def load_metadata(self) -> dict[str, Any]:
         """Load item metadata from file.

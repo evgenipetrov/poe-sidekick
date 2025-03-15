@@ -7,14 +7,14 @@ including window management, screenshot stream, modules, and workflows.
 import argparse
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, NoReturn, Optional, Protocol, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NoReturn, Protocol, TypedDict, cast
 
 from poe_sidekick.core.stream import ScreenshotStream
 from poe_sidekick.core.window import GameWindow
 from poe_sidekick.plugins.loot_manager.module import LootModule
 from poe_sidekick.services.config import ConfigService
 from poe_sidekick.services.input import InputConfig, InputService
-from poe_sidekick.services.item import TemplateService
+from poe_sidekick.services.item import ItemService, TemplateService  # Added ItemService
 from poe_sidekick.services.vision import VisionService
 
 if TYPE_CHECKING:
@@ -153,12 +153,12 @@ class Engine:
         """Initialize the Engine instance."""
         self._config = ConfigService()
         self._window = GameWindow()
-        self._screenshot_stream: Optional[ScreenshotStream] = None
+        self._screenshot_stream: ScreenshotStream | None = None
         self._modules: dict[str, Module] = {}
         self._running: bool = False
         self._shutdown_requested: bool = False
         self._logger = logging.getLogger(__name__)
-        self._workflow: Optional[Any] = None  # Type will be refined when workflow system is typed
+        self._workflow: Any | None = None  # Type will be refined when workflow system is typed
         self._frame_tasks: list[asyncio.Task[None]] = []
 
         # Parse command line arguments
@@ -235,6 +235,7 @@ class Engine:
 
             vision_service = VisionService(self._screenshot_stream)
             template_service = TemplateService(self._config)
+            item_service = ItemService(self._config)  # Initialize ItemService
 
             # Load input config
             input_config = self._config.get_value("core", "input")
@@ -251,6 +252,7 @@ class Engine:
                 "vision_service": vision_service,
                 "input_service": input_service,
                 "template_service": template_service,
+                "item_service": item_service,  # Add ItemService to services
                 "stream": self._screenshot_stream,
             }
 
@@ -300,7 +302,7 @@ class Engine:
             if cleanup_tasks:  # Only wait if there are tasks
                 await asyncio.wait_for(asyncio.gather(*cleanup_tasks), timeout=timeout)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._logger.warning(f"Component cleanup timed out after {timeout} seconds")
         except Exception:
             self._logger.exception("Error during component cleanup")
@@ -361,7 +363,7 @@ class Engine:
         """
         return self._window
 
-    def _validate_workflow_config(self, workflow_name: str, workflow_config: Optional[WorkflowConfig]) -> None:
+    def _validate_workflow_config(self, workflow_name: str, workflow_config: WorkflowConfig | None) -> None:
         """Validate workflow configuration.
 
         Args:
