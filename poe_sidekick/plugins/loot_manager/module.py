@@ -10,6 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ...core.module import BaseModule, ModuleConfig
+from ...core.types import LogLevel
 
 
 class ItemInfo(TypedDict):
@@ -57,7 +58,19 @@ class LootModule(BaseModule):
         with open(config_path) as f:
             module_config = json.load(f)
 
-        config = ModuleConfig(name="loot_module", enabled=True)  # Always enabled by default
+        # Initialize module configuration with logging level
+        log_level_str = module_config.get("logging", {}).get("level", "INFO")
+        try:
+            log_level = LogLevel(log_level_str)
+        except ValueError:
+            self.logger.warning(f"Invalid log level: {log_level_str}, defaulting to INFO")
+            log_level = LogLevel.INFO
+            
+        config = ModuleConfig(
+            name="loot_module",
+            enabled=True,  # Always enabled by default
+            log_level=log_level
+        )
         super().__init__(config, services)
 
         # Get required services

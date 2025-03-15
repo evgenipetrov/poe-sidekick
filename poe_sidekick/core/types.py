@@ -1,6 +1,16 @@
 """Type definitions for external dependencies."""
 
+import enum
 from typing import Protocol, TypedDict
+
+class LogLevel(str, enum.Enum):
+    """Log level enumeration."""
+
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
 
 
 class StreamMetrics(TypedDict):

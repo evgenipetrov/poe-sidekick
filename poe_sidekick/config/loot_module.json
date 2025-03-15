@@ -1,4 +1,7 @@
 {
+    "logging": {
+        "level": "INFO"
+    },
     "filters": {
         "min_item_value": 0.0,
         "priority_items": ["Exalted Orb"],

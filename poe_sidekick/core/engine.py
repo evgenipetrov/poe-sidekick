@@ -10,6 +10,7 @@ import logging
 from typing import TYPE_CHECKING, Any, NoReturn, Protocol, TypedDict, cast
 
 from poe_sidekick.core.stream import ScreenshotStream
+from poe_sidekick.core.types import LogLevel
 from poe_sidekick.core.window import GameWindow
 from poe_sidekick.plugins.loot_manager.module import LootModule
 from poe_sidekick.services.config import ConfigService
@@ -161,11 +162,29 @@ class Engine:
         self._workflow: Any | None = None  # Type will be refined when workflow system is typed
         self._frame_tasks: list[asyncio.Task[None]] = []
 
+        # Set engine logging level
+        asyncio.create_task(self._configure_logging())
+
         # Parse command line arguments
         parser = argparse.ArgumentParser()
         parser.add_argument("--workflow", type=str, help="Name of workflow to run")
         args, _ = parser.parse_known_args()
         self._workflow_name = args.workflow
+
+    async def _configure_logging(self) -> None:
+        """Configure logging levels from config."""
+        try:
+            core_config = await self._config.load_config("core")
+            log_level_str = core_config.get("logging", {}).get("level", "INFO")
+            try:
+                log_level = LogLevel(log_level_str)
+                self._logger.setLevel(log_level)
+                logging.getLogger("poe_sidekick.core").setLevel(log_level)
+                self._logger.info(f"Core logging level set to {log_level}")
+            except ValueError:
+                self._logger.warning(f"Invalid log level in core config: {log_level_str}, defaulting to INFO")
+        except Exception:
+            self._logger.warning("Failed to load logging configuration, using default level INFO")
 
     async def start(self) -> None:
         """Start the POE Sidekick engine.

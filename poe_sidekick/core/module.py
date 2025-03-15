@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 import numpy as np
+
+from .types import LogLevel
 from numpy.typing import NDArray
 from rx.core.observable.observable import Observable
 from rx.subject.subject import Subject
@@ -19,10 +21,12 @@ class ModuleConfig:
     Args:
         name: Unique name for the module instance
         enabled: Whether the module is enabled by default
+        log_level: Logging level for the module
     """
 
     name: str
     enabled: bool = True
+    log_level: LogLevel = LogLevel.INFO
 
 
 class BaseModule(ABC):
@@ -50,6 +54,7 @@ class BaseModule(ABC):
         self.active = False
         self._state: dict[str, Any] = {}
         self.logger = logging.getLogger(f"module.{self.name}")
+        self.logger.setLevel(config.log_level.value)
         self._frame_subject = Subject()  # Type inference through usage
 
     @property
