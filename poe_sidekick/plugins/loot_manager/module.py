@@ -33,7 +33,7 @@ class LootModule(BaseModule):
         with open(config_path) as f:
             module_config = json.load(f)
 
-        config = ModuleConfig(name="loot_module", enabled=module_config["activation"]["enabled_by_default"])
+        config = ModuleConfig(name="loot_module", enabled=True)  # Always enabled by default
         super().__init__(config, services)
 
         # Get required services
@@ -43,7 +43,6 @@ class LootModule(BaseModule):
         # Store configuration sections
         self._filters = module_config["filters"]
         self._behavior = module_config["behavior"]
-        self._ui = module_config["ui"]
 
         # Initialize state
         self._detected_items: list[dict[str, Any]] = []

@@ -1,8 +1,4 @@
 {
-    "activation": {
-        "hotkey": "F4",
-        "enabled_by_default": true
-    },
     "filters": {
         "min_item_value": 0.0,
         "priority_items": ["Exalted Orb"],
@@ -17,12 +13,6 @@
     },
     "behavior": {
         "auto_pickup": false,
-        "scan_frequency": 0.5,
         "detection_threshold": 0.85
-    },
-    "ui": {
-        "highlight_color": "#00ff00",
-        "show_item_value": true,
-        "show_item_level": true
     }
 }

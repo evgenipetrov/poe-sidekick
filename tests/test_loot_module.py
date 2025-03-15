@@ -113,20 +113,28 @@ async def test_loot_module_activation(mock_services, mock_config):
     assert not module._ground_templates  # Templates cleared
 
 
-def test_frame_processing(mock_services, mock_config):
+@pytest.mark.asyncio
+async def test_frame_processing(mock_services, mock_config):
     """Test basic frame processing functionality."""
     module = LootModule(mock_services)
 
-    # Create a test frame
-    test_frame = np.zeros((100, 100, 3), dtype=np.uint8)
+    # Activate module first
+    await module.activate()
 
-    # Process frame
-    module._process_frame(test_frame)
+    try:
+        # Create a test frame
+        test_frame = np.zeros((100, 100, 3), dtype=np.uint8)
 
-    # Verify state updated
-    state = module.state
-    assert state["frame_shape"] == (100, 100, 3)
-    assert state["detected_items"] == []
+        # Process frame
+        await module._process_frame(test_frame)
+
+        # Verify state updated
+        state = module.state
+        assert state["frame_shape"] == (100, 100, 3)
+        assert state["detected_items"] == []
+    finally:
+        # Clean up
+        await module.deactivate()
 
 
 @pytest.mark.asyncio
